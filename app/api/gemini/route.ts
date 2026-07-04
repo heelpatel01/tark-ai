@@ -4,7 +4,7 @@ import { NextRequest } from 'next/server';
 import { getPersona } from '@/lib/personaData';
 
 const google = createGoogleGenerativeAI({
-  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY, // Make sure to set this in your environment variables
+  apiKey: process.env.GEMINI_API_KEYY, // Make sure to set this in your environment variables
 });
 
 export async function POST(req: NextRequest) {
@@ -20,9 +20,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate message format
-    const isValidMessage = (msg: any) => 
-      msg && typeof msg === 'object' && 
-      typeof msg.content === 'string' && 
+    const isValidMessage = (msg: any) =>
+      msg && typeof msg === 'object' &&
+      typeof msg.content === 'string' &&
       ['user', 'assistant', 'system'].includes(msg.role);
 
     if (!messages.every(isValidMessage)) {
@@ -117,10 +117,10 @@ Remember to embody this persona consistently throughout the conversation.`;
     const allMessages = [systemMessage, ...messages];
 
     const result = await streamText({
-      model: google('gemini-2.5-flash'), 
+      model: google('gemini-2.5-flash'),
       messages: allMessages,
       temperature: 0.7,
-      maxOutputTokens:10000,
+      maxOutputTokens: 10000,
     });
 
     // Create a slower streaming response
@@ -128,19 +128,19 @@ Remember to embody this persona consistently throughout the conversation.`;
     const stream = new ReadableStream({
       async start(controller) {
         const reader = result.textStream.getReader();
-        
+
         try {
           while (true) {
             const { done, value } = await reader.read();
-            
+
             if (done) {
               controller.close();
               break;
             }
-            
+
             // Add delay to slow down the stream
             await new Promise(resolve => setTimeout(resolve, 200)); // 200ms delay per chunk
-            
+
             controller.enqueue(encoder.encode(value));
           }
         } catch (error) {
@@ -161,29 +161,29 @@ Remember to embody this persona consistently throughout the conversation.`;
 
   } catch (error: any) {
     console.error('Gemini API error:', error);
-    
+
     // Handle different types of errors
     if (error.name === 'AI_APICallError') {
       return new Response(
-        JSON.stringify({ 
-          error: 'API call failed', 
-          details: error.message 
+        JSON.stringify({
+          error: 'API call failed',
+          details: error.message
         }),
-        { 
-          status: error.statusCode || 500, 
-          headers: { 'Content-Type': 'application/json' } 
+        {
+          status: error.statusCode || 500,
+          headers: { 'Content-Type': 'application/json' }
         }
       );
     }
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: 'Internal server error',
         details: error.message || 'Unknown error occurred'
       }),
-      { 
-        status: 500, 
-        headers: { 'Content-Type': 'application/json' } 
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
       }
     );
   }

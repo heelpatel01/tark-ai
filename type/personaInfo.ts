@@ -12,7 +12,7 @@ export type PersonaCategory = "tech-educators";
 
 // Category display names
 export const CATEGORY_NAMES: Record<PersonaCategory, string> = {
-  "tech-educators": "👨‍💻 Tech Educators",
+  "tech-educators": "Tech Educators",
 };
 
 // Personas organized by category

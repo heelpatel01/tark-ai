@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { useRouter } from "next/navigation";
+import { Sparkles, Zap, Users, Rocket } from "lucide-react";
 
 const HeroSection: React.FC = () => {
   const router = useRouter();
@@ -11,8 +12,8 @@ const HeroSection: React.FC = () => {
       <main className="flex flex-col items-center justify-center px-6 text-center max-w-5xl mx-auto z-10 mt-12 mb-12">
         {/* Badge */}
         <div className="mb-8 inline-block bg-green-400 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] px-4 py-2 transform -rotate-2">
-          <span className="font-black text-sm uppercase tracking-wider text-black">
-            Powered by Modern LLMs ✨
+          <span className="font-black text-sm uppercase tracking-wider text-black flex items-center gap-1.5 justify-center">
+            Powered by Modern LLMs <Sparkles className="w-4 h-4 text-black inline-block animate-pulse" />
           </span>
         </div>
 
@@ -42,13 +43,13 @@ const HeroSection: React.FC = () => {
         {/* Trust Badges */}
         <div className="flex flex-wrap justify-center gap-4 mt-8 max-w-2xl">
           <div className="bg-white border-2 border-black px-3 py-1.5 font-bold text-xs md:text-sm shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center gap-1.5">
-            <span>⚡</span> Powered by AI
+            <Zap className="w-4 h-4 text-yellow-500 fill-yellow-500" /> Powered by AI
           </div>
           <div className="bg-white border-2 border-black px-3 py-1.5 font-bold text-xs md:text-sm shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center gap-1.5">
-            <span>👥</span> 2 Expert Personas
+            <Users className="w-4 h-4 text-blue-500" /> 2 Expert Personas
           </div>
           <div className="bg-white border-2 border-black px-3 py-1.5 font-bold text-xs md:text-sm shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center gap-1.5">
-            <span>🚀</span> Fast Responses
+            <Rocket className="w-4 h-4 text-red-500 fill-red-500" /> Fast Responses
           </div>
         </div>
       </main>

@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { MessageCircle, Sparkles, ArrowRight } from "lucide-react";
+import { MessageCircle, Sparkles, ArrowRight, Layers, Terminal } from "lucide-react";
 import {
   PERSONAS_BY_CATEGORY,
   CATEGORY_NAMES,
@@ -21,6 +21,14 @@ const CATEGORY_COLORS: Record<
     hover: "hover:bg-cyan-300",
     border: "border-cyan-500",
   },
+};
+
+// Category icons for visual distinction
+const CATEGORY_ICONS: Record<
+  PersonaCategory,
+  React.ComponentType<{ className?: string }>
+> = {
+  "tech-educators": Terminal,
 };
 
 export default function PersonaCards() {
@@ -79,46 +87,53 @@ export default function PersonaCards() {
         {/* All Tab */}
         <button
           onClick={() => setActiveCategory("all")}
-          className={`px-4 py-2 md:px-6 md:py-3 font-black text-xs md:text-sm uppercase border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all ${
+          className={`px-4 py-2 md:px-6 md:py-3 font-black text-xs md:text-sm uppercase border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all flex items-center gap-2 ${
             activeCategory === "all"
               ? "bg-black text-white translate-x-[2px] translate-y-[2px] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
               : "bg-white text-black hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
           }`}
         >
-          🌟 All
+          <Layers className="w-4 h-4" /> All
         </button>
 
         {/* Category Tabs */}
-        {categories.map((category) => (
-          <button
-            key={category}
-            onClick={() => setActiveCategory(category)}
-            className={`px-4 py-2 md:px-6 md:py-3 font-black text-xs md:text-sm uppercase border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all ${
-              activeCategory === category
-                ? `${CATEGORY_COLORS[category].bg} text-black translate-x-[2px] translate-y-[2px] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]`
-                : "bg-white text-black hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
-            }`}
-          >
-            {CATEGORY_NAMES[category]}
-          </button>
-        ))}
+        {categories.map((category) => {
+          const Icon = CATEGORY_ICONS[category];
+          return (
+            <button
+              key={category}
+              onClick={() => setActiveCategory(category)}
+              className={`px-4 py-2 md:px-6 md:py-3 font-black text-xs md:text-sm uppercase border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all flex items-center gap-2 ${
+                activeCategory === category
+                  ? `${CATEGORY_COLORS[category].bg} text-black translate-x-[2px] translate-y-[2px] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]`
+                  : "bg-white text-black hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+              }`}
+            >
+              {Icon && <Icon className="w-4 h-4" />}
+              {CATEGORY_NAMES[category]}
+            </button>
+          );
+        })}
       </div>
 
       {/* Categorized Cards */}
       <div className="space-y-12 md:space-y-16 max-w-7xl mx-auto w-full relative z-10">
-        {getDisplayedCategories().map((category) => (
-          <div key={category} className="space-y-6">
-            {/* Category Header */}
-            {activeCategory === "all" && (
-              <div className="flex items-center gap-4 mb-6">
-                <h2
-                  className={`inline-block text-2xl md:text-3xl font-black text-black uppercase px-4 py-2 ${CATEGORY_COLORS[category].bg} border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]`}
-                >
-                  {CATEGORY_NAMES[category]}
-                </h2>
-                <div className="flex-1 h-1 bg-black hidden md:block"></div>
-              </div>
-            )}
+        {getDisplayedCategories().map((category) => {
+          const CategoryIcon = CATEGORY_ICONS[category];
+          return (
+            <div key={category} className="space-y-6">
+              {/* Category Header */}
+              {activeCategory === "all" && (
+                <div className="flex items-center gap-4 mb-6">
+                  <h2
+                    className={`inline-block text-2xl md:text-3xl font-black text-black uppercase px-4 py-2 ${CATEGORY_COLORS[category].bg} border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center gap-2`}
+                  >
+                    {CategoryIcon && <CategoryIcon className="w-6 h-6" />}
+                    {CATEGORY_NAMES[category]}
+                  </h2>
+                  <div className="flex-1 h-1 bg-black hidden md:block"></div>
+                </div>
+              )}
 
             {/* Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
@@ -139,8 +154,9 @@ export default function PersonaCards() {
                       />
                       {/* Category Badge */}
                       <div
-                        className={`absolute top-3 right-3 ${CATEGORY_COLORS[category].bg} border-2 border-black px-2 py-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]`}
+                        className={`absolute top-3 right-3 ${CATEGORY_COLORS[category].bg} border-2 border-black px-2 py-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center gap-1`}
                       >
+                        {CategoryIcon && <CategoryIcon className="w-3.5 h-3.5" />}
                         <span className="text-[10px] font-black text-black uppercase">
                           {CATEGORY_NAMES[category].split(" ")[0]}
                         </span>
@@ -201,7 +217,7 @@ export default function PersonaCards() {
               ))}
             </div>
           </div>
-        ))}
+        ); })}
       </div>
 
       {/* Decorative Elements */}
