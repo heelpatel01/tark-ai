@@ -1,0 +1,41 @@
+{
+  "name": "Tark AI",
+  "short_name": "Tark AI",
+  "description": "Chat with AI personas inspired by your favorite tech mentors. Learn coding, backend development, AI, and problem-solving through natural conversations.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "categories": [
+    "education",
+    "entertainment",
+    "lifestyle"
+  ],
+  "screenshots": [
+    {
+      "src": "/hero.png",
+      "sizes": "1200x630",
+      "type": "image/png"
+    }
+  ]
+}
