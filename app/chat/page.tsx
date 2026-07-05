@@ -14,6 +14,7 @@ import {
   FiChevronDown,
   FiRepeat,
   FiPaperclip,
+  FiArrowLeft,
 } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
@@ -274,6 +275,7 @@ const ChatApp: React.FC = () => {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [switcherOpen, setSwitcherOpen] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const switcherRef = useRef<HTMLDivElement>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -465,7 +467,7 @@ const ChatApp: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-transparent font-sans overflow-hidden relative">
-      
+
       {/* Background elements */}
       <div className="saas-grid" />
       <div className="hero-glow pointer-events-none" />
@@ -489,65 +491,85 @@ const ChatApp: React.FC = () => {
       <div className="flex-1 flex flex-col min-h-0 min-w-0 z-10">
 
         {/* Chat Header */}
-        <header className="flex-shrink-0 bg-white/60 dark:bg-black/20 backdrop-blur-xl border-b border-black/5 px-6 py-4 flex items-center justify-between z-20 shadow-[0_2px_12px_rgba(0,0,0,0.01)]">
-          {/* Sidebar toggle */}
-          <button
-            onClick={toggleSidebar}
-            className="w-8 h-8 rounded-full border border-black/10 bg-white/40 flex items-center justify-center hover:bg-white/70 transition-all flex-shrink-0 shadow-sm"
-            aria-label="Toggle sidebar"
-          >
-            {isMobile
-              ? (mobileSidebarOpen ? <FiX size={15} strokeWidth={3} /> : <FiMenu size={15} strokeWidth={3} />)
-              : (sidebarOpen ? <FiChevronLeft size={16} strokeWidth={3} /> : <FiChevronRight size={16} strokeWidth={3} />)
-            }
-          </button>
+        <header
+          className="flex-shrink-0 chat-header-glass px-5 py-2 flex items-center justify-between z-20 rounded-b-2xl transition-all duration-300"
+        >
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Sidebar toggle */}
+            <button
+              onClick={toggleSidebar}
+              className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-200 hover:bg-black/5 dark:hover:bg-white/5"
+              aria-label="Toggle sidebar"
+            >
+              {isMobile
+                ? (mobileSidebarOpen
+                  ? <FiX size={16} strokeWidth={2.5} className="text-[#667085] dark:text-[#94A3B8]" />
+                  : <FiMenu size={16} strokeWidth={2.5} className="text-[#667085] dark:text-[#94A3B8]" />)
+                : (sidebarOpen
+                  ? <FiChevronLeft size={16} strokeWidth={2.5} className="text-[#667085] dark:text-[#94A3B8]" />
+                  : <FiChevronRight size={16} strokeWidth={2.5} className="text-[#667085] dark:text-[#94A3B8]" />)
+              }
+            </button>
+
+            {/* Back button */}
+            <button
+              onClick={handleBackToPersonas}
+              className="flex items-center gap-1 text-[10px] font-bold chat-header-back-text transition-colors px-2.5 py-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5"
+              aria-label="Back to personas"
+            >
+              <FiArrowLeft size={12} strokeWidth={3} className="chat-header-back-text" />
+              <span className="hidden sm:inline chat-header-back-text">Back</span>
+            </button>
+          </div>
 
           {/* Persona info + Switch dropdown */}
           {selectedPersona && (
-            <div className="flex items-center gap-3 flex-1 min-w-0 justify-between">
+            <div className="flex items-center gap-4 flex-1 min-w-0 justify-between ml-3">
+              {/* Left: avatar + name & subtitle */}
               <div className="flex items-center gap-3 min-w-0">
                 <div className="relative flex-shrink-0">
                   <img
                     src={selectedPersona.image}
                     alt={selectedPersona.name}
-                    className="w-9 h-9 object-cover border border-white shadow-md rounded-full"
+                    className="w-8 h-8 object-cover rounded-full shadow-sm"
+                    style={{ border: "1.5px solid rgba(255,255,255,0.8)" }}
                   />
-                  <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border border-white rounded-full" />
+                  <span className="absolute bottom-0 right-0 w-2 h-2 bg-emerald-400 border-2 border-white dark:border-[#0F121C] rounded-full" />
                 </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h1 className="font-bold text-sm text-[#111111] leading-none truncate">{selectedPersona.name}</h1>
-                    <span className="hidden sm:flex items-center gap-1 text-[8px] font-bold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full flex-shrink-0">
-                      <span className="w-1 h-1 bg-green-500 rounded-full" />
-                      Active
-                    </span>
-                  </div>
-                  <p className="text-[9px] text-[#667085] font-semibold mt-0.5 hidden sm:block">Inspired by public lectures</p>
+                <div className="flex flex-col justify-center min-w-0">
+                  <h1 className="font-extrabold text-[13px] chat-header-name leading-none truncate tracking-tight">{selectedPersona.name}</h1>
+                  <p className="text-[10px] chat-header-subtitle font-bold mt-0.5 leading-none hidden sm:block">Inspired by public lectures</p>
                 </div>
               </div>
 
-              {/* Switch Mentor Dropdown & Theme Toggle */}
-              <div className="flex items-center gap-2.5 flex-shrink-0">
+              {/* Right: theme toggle + switch button */}
+              <div className="flex items-center gap-3.5 flex-shrink-0">
                 <ThemeToggle />
+
                 <div className="relative" ref={switcherRef}>
+                  {/* Glass pill switch button */}
                   <button
                     onClick={() => setSwitcherOpen(o => !o)}
-                    className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-3.5 py-2 border border-black/5 bg-white rounded-full shadow-sm hover:bg-[#F8FAFC] transition-all"
-                    aria-label="Explore mentor"
+                    aria-label="Switch mentor"
+                    className="flex items-center gap-1.5 h-8 px-4 rounded-full text-[10px] font-bold uppercase tracking-wider chat-switch-text transition-all duration-200 border border-black/10 dark:border-white/10 bg-white/60 hover:bg-white/90 dark:bg-white/5 dark:hover:bg-white/10 backdrop-blur-md shadow-[0_1px_3px_rgba(0,0,0,0.05)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6D5DF6]/40 cursor-pointer"
                   >
-                    <FiRepeat size={11} strokeWidth={3} />
-                    <span className="hidden sm:inline">Switch</span>
-                    <FiChevronDown size={11} strokeWidth={3} className={`transition-transform duration-200 ${switcherOpen ? "rotate-180" : ""}`} />
+                    <FiRepeat size={10} strokeWidth={2.5} className="chat-switch-text" />
+                    <span className="hidden sm:inline chat-switch-text">Switch</span>
+                    <FiChevronDown
+                      size={10}
+                      strokeWidth={2.5}
+                      className={`chat-switch-text transition-transform duration-200 ${switcherOpen ? "rotate-180" : ""}`}
+                    />
                   </button>
 
                   {/* Dropdown popup */}
                   {switcherOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-72 bg-white/95 border border-white/60 shadow-xl backdrop-blur-2xl rounded-2xl overflow-hidden z-50 animate-message-appear">
-                      <div className="bg-black/5 border-b border-black/5 px-4 py-3 flex items-center justify-between">
-                        <span className="text-[#111111] font-bold text-[10px] uppercase tracking-widest">Switch Mentor</span>
+                    <div className="absolute right-0 top-full mt-2 w-72 bg-white/80 dark:bg-[#0F121C]/80 border border-white/60 dark:border-white/5 shadow-xl backdrop-blur-3xl rounded-2xl overflow-hidden z-50 animate-message-appear">
+                      <div className="bg-black/[0.02] dark:bg-white/[0.02] border-b border-black/5 dark:border-white/5 px-4 py-3 flex items-center justify-between">
+                        <span className="text-[#111111] dark:text-[#F8FAFC] font-bold text-[10px] uppercase tracking-widest">Switch Mentor</span>
                         <button
                           onClick={() => setSwitcherOpen(false)}
-                          className="text-[#667085] hover:text-[#111111] transition-colors"
+                          className="text-[#667085] dark:text-[#94A3B8] hover:text-[#111111] dark:hover:text-[#F8FAFC] transition-colors"
                         >
                           <FiX size={13} strokeWidth={3} />
                         </button>
@@ -561,7 +583,7 @@ const ChatApp: React.FC = () => {
                               key={p.key}
                               className={`flex items-center gap-3 p-2.5 rounded-xl border transition-all duration-150 ${isActive
                                 ? "border-[#6D5DF6]/20 bg-[#6D5DF6]/5 cursor-default"
-                                : "border-transparent hover:bg-black/[0.02] cursor-pointer"
+                                : "border-transparent hover:bg-black/[0.025] dark:hover:bg-white/[0.03] cursor-pointer"
                                 }`}
                               onClick={() => !isActive && handleSwitchPersona(p)}
                             >
@@ -569,7 +591,7 @@ const ChatApp: React.FC = () => {
                                 <img
                                   src={p.image}
                                   alt={p.name}
-                                  className="w-10 h-10 object-cover border border-white rounded-full"
+                                  className="w-10 h-10 object-cover border border-white dark:border-white/10 rounded-full"
                                 />
                                 {isActive && (
                                   <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border border-white rounded-full flex items-center justify-center">
@@ -579,8 +601,8 @@ const ChatApp: React.FC = () => {
                               </div>
 
                               <div className="flex-1 min-w-0">
-                                <p className="font-bold text-xs text-[#111111] truncate">{p.name}</p>
-                                <p className="text-[9px] text-[#667085] font-semibold truncate mt-0.5">{p.role.split("·")[0]}</p>
+                                <p className="font-bold text-xs text-[#111111] dark:text-[#F8FAFC] truncate">{p.name}</p>
+                                <p className="text-[9px] text-[#667085] dark:text-[#94A3B8] font-semibold truncate mt-0.5">{p.role.split("·")[0]}</p>
                               </div>
 
                               {!isActive && (
@@ -767,27 +789,35 @@ const ChatApp: React.FC = () => {
         {/* Input Bar */}
         <div className="flex-shrink-0 bg-transparent">
           <div className="max-w-3xl mx-auto px-4 pb-6">
-            <form onSubmit={handleSendMessage} className="relative flex items-center bg-white/70 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/10 rounded-2xl shadow-lg px-4 py-3 gap-3">
-              {/* Attachment Icon */}
-              <button
-                type="button"
-                className="text-[#667085] hover:text-[#111111] transition-colors p-1"
-                aria-label="Attach file"
-              >
-                <FiPaperclip size={16} />
-              </button>
-
-              <input
-                type="text"
+            <form
+              onSubmit={handleSendMessage}
+              className="relative flex items-center chat-composer-glass rounded-2xl px-4 py-2.5 gap-3 transition-all duration-300"
+              style={isFocused && selectedPersona ? {
+                borderColor: `${PERSONA_ACCENT[selectedPersona.key]}45`,
+                boxShadow: `0 4px 24px ${PERSONA_ACCENT[selectedPersona.key]}0d, 0 0 0 2px ${PERSONA_ACCENT[selectedPersona.key]}1a`
+              } : {}}
+            >
+              <textarea
                 value={inputValue}
                 onChange={e => setInputValue(e.target.value)}
-                onKeyDown={e => { if (e.key === "Enter" && !isLoading && wordCount <= maxWords) handleSendMessage(e); }}
+                onKeyDown={e => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    if (!isLoading && inputValue.trim() && wordCount <= maxWords) {
+                      sendMessage(inputValue);
+                    }
+                  }
+                }}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
+                rows={2}
                 placeholder={`Ask ${personaFirstName} about React, Backend, AI, Career...`}
                 disabled={isLoading}
                 className="
-                  flex-1 text-black font-semibold text-xs sm:text-sm
-                  bg-transparent border-0 focus:outline-none
-                  disabled:opacity-60 placeholder:text-[#667085]/60 placeholder:font-medium
+                  flex-1 chat-composer-textarea font-medium text-xs sm:text-sm
+                  bg-transparent border-0 focus:outline-none resize-none
+                  disabled:opacity-60 placeholder-[#8A94A6] dark:placeholder-[#8d94a7]
+                  py-1.5 scrollbar-none h-[42px] max-h-[120px]
                 "
               />
 
@@ -800,15 +830,20 @@ const ChatApp: React.FC = () => {
                 type="submit"
                 disabled={!inputValue.trim() || isLoading || wordCount > maxWords}
                 className={`
-                  w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200
+                  w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200
                   ${inputValue.trim() && !isLoading && wordCount <= maxWords
-                    ? "text-white shadow-md hover:scale-105 active:scale-100"
-                    : "bg-black/5 text-[#667085]/40 cursor-not-allowed"
+                    ? "shadow-sm dark:shadow-md hover:scale-105 active:scale-95 cursor-pointer"
+                    : "cursor-not-allowed"
                   }
                 `}
                 style={inputValue.trim() && !isLoading && wordCount <= maxWords ? {
                   background: `linear-gradient(135deg, ${selectedPersona ? PERSONA_ACCENT[selectedPersona.key] : "#6D5DF6"}, #8b5cf6)`,
-                } : {}}
+                  color: "#ffffff"
+                } : {
+                  backgroundColor: selectedPersona ? `${PERSONA_ACCENT[selectedPersona.key]}14` : "rgba(109, 93, 246, 0.08)",
+                  color: selectedPersona ? PERSONA_ACCENT[selectedPersona.key] : "#6D5DF6",
+                  opacity: 0.4
+                }}
               >
                 <FiSend size={12} strokeWidth={3} />
               </button>

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Menu, X, Github, ExternalLink } from "lucide-react";
 import ThemeToggle from "@/component/ThemeToggle";
+import ThemeLogo from "@/component/ThemeLogo";
 
 const NAV_LINKS = [
   { label: "Features", href: "/#features" },
@@ -39,28 +40,22 @@ const Navbar: React.FC = () => {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled ? "py-3" : "py-5"
-        }`}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "py-3" : "py-5"
+          }`}
       >
         <div className="mx-auto px-4 md:px-6 max-w-7xl">
           <div
-            className={`transition-all duration-300 rounded-2xl border border-black/5 bg-white/70 backdrop-blur-md px-6 py-3 flex items-center justify-between ${
-              scrolled 
-                ? "shadow-[0_8px_30px_rgba(0,0,0,0.03)] border-black/10 bg-white/80" 
-                : ""
-            }`}
+            className={`transition-all duration-300 rounded-2xl border border-black/5 bg-white/70 backdrop-blur-md px-6 py-3 flex items-center justify-between ${scrolled
+              ? "shadow-[0_8px_30px_rgba(0,0,0,0.03)] border-black/10 bg-white/80"
+              : ""
+              }`}
           >
             {/* Logo */}
             <button
               onClick={() => router.push("/")}
               className="flex items-center gap-2 group flex-shrink-0"
             >
-              <img
-                src="/tarkai-logo-navbar.png"
-                alt="Tark AI"
-                className="h-8 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
-              />
+              <ThemeLogo className="h-8 w-auto object-contain transition-transform duration-300 group-hover:scale-105" />
               <div className="hidden sm:flex flex-col border-l border-black/10 pl-2.5">
                 <span className="text-[10px] font-bold text-[#4B5563] uppercase tracking-widest leading-none">
                   Mentor Platform

@@ -297,7 +297,7 @@ export default function PersonaCards() {
           Thousands of engineering questions answered.
         </p>
         <p className="text-[9px] font-semibold text-[#667085] uppercase tracking-widest">
-          Powered by GPT, Gemini, Claude & Groq. Built for developers.
+          Powered by GPT, Gemini & Claude. Built for developers.
         </p>
       </section>
 

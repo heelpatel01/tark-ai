@@ -19,6 +19,7 @@ import {
   FiAward,
 } from "react-icons/fi";
 import { useRouter } from "next/navigation";
+import ThemeLogo from "@/component/ThemeLogo";
 
 interface PersonaData {
   key: string;
@@ -137,7 +138,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
         className="px-5 pt-5 pb-4 border-b border-black/5 cursor-pointer flex items-center gap-2.5 hover:bg-black/[0.02] transition-colors flex-shrink-0"
         onClick={() => { if (isMobile) onClose(); router.push("/"); }}
       >
-        <img src="/tarkai-logo-navbar.png" alt="Tark AI" className="h-7 w-auto object-contain opacity-80" />
+        <ThemeLogo className="h-7 w-auto object-contain opacity-80" />
         <div className="flex flex-col">
           <span className="font-bold text-xs text-[#111111] leading-none">Tark AI</span>
           <span className="text-[8px] font-bold text-[#667085] uppercase tracking-widest mt-0.5">
@@ -220,8 +221,8 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
             Learning Path
           </p>
         </div>
-        <div className="bg-white/75 border border-[#6D5DF6]/10 rounded-xl px-3 py-2 shadow-[0_2px_8px_rgba(0,0,0,0.01)]">
-          <p className="text-[10px] font-semibold text-[#667085] leading-relaxed">
+        <div className="bg-white/75 dark:bg-[#151922] border border-[#6D5DF6]/10 dark:border-white/5 rounded-xl px-3 py-2 shadow-[0_2px_8px_rgba(0,0,0,0.01)]">
+          <p className="text-[10px] font-bold text-[#111111] dark:text-[#94A3B8] leading-relaxed">
             {config.learningPath}
           </p>
         </div>

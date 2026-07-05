@@ -21,6 +21,7 @@ import {
   Play,
   ArrowUpRight,
 } from "lucide-react";
+import ThemeLogo from "@/component/ThemeLogo";
 
 // ── Interactive preset Q&A for the comparison block ────────────────
 const INTERACTIVE_QA = [
@@ -212,13 +213,13 @@ const HeroConversation: React.FC = () => {
                     alt={card.name}
                     className="w-7 h-7 object-cover rounded-full border border-black/5 shadow-sm"
                   />
-                  <span 
+                  <span
                     className="absolute bottom-0 right-0 w-2 h-2 rounded-full border border-white"
                     style={{ backgroundColor: card.accent }}
                   />
                 </div>
                 <div className="max-w-[90%]">
-                  <div 
+                  <div
                     className="border border-black/5 bg-white rounded-2xl rounded-tl-none px-4 py-2.5 shadow-sm"
                     style={{ borderLeft: `3px solid ${card.accent}` }}
                   >
@@ -280,7 +281,7 @@ const LandingPage: React.FC = () => {
       } else if (userText.toLowerCase().includes("backend") || userText.toLowerCase().includes("database")) {
         reply = "Dekho! Express route build karo, database setup containerize karo. Docker helps backend scale.";
       } else if (userText.toLowerCase().includes("ai") || userText.toLowerCase().includes("agent")) {
-        reply = "AI integration standard tools setup pe base hoti hai. Look into Claude APIs or Groq streams.";
+        reply = "AI integration standard tools setup pe base hoti hai. Look into Claude or Gemini APIs.";
       }
 
       setBentoChatMessages((prev) => [
@@ -309,7 +310,7 @@ const LandingPage: React.FC = () => {
 
   return (
     <div className="relative min-h-screen bg-[#FAF9F5] font-sans pb-12">
-      
+
       {/* Subtle SaaS grid pattern */}
       <div className="saas-grid" />
 
@@ -319,10 +320,10 @@ const LandingPage: React.FC = () => {
       {/* ── SECTION 1: HERO & CORE ASYMMETRICAL BENTO ── */}
       <section className="pt-24 pb-6 px-4 md:px-6 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-          
+
           {/* Hero Content (Spans 8 columns on desktop) */}
           <div className="lg:col-span-8 bento-card p-8 md:p-10 flex flex-col justify-center relative overflow-hidden group">
-            
+
             <div className="mb-5 inline-flex items-center gap-2 px-3 py-1 rounded-full border border-black/5 bg-black/[0.02] self-start">
               <Sparkles className="w-3 h-3 text-[#6D5DF6]" />
               <span className="font-bold text-[9px] uppercase tracking-widest text-[#4B5563]">
@@ -369,7 +370,7 @@ const LandingPage: React.FC = () => {
 
           {/* Hero Right Bento preview (SaaS Screenshot/App feel) */}
           <div className="lg:col-span-4 lg:row-span-2 bento-card p-6 flex flex-col justify-between overflow-hidden relative">
-            
+
             {/* Header */}
             <div className="flex items-center justify-between pb-3 border-b border-black/5 mb-3 flex-shrink-0">
               <div className="flex items-center gap-2">
@@ -406,7 +407,7 @@ const LandingPage: React.FC = () => {
                 <span className="text-[8px] font-bold text-green-700 uppercase">2 mentors online</span>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-3">
               <div className="flex -space-x-2.5">
                 <img src="/hiteshchoudhary.png" alt="Hitesh" className="w-9 h-9 object-cover rounded-full border border-white shadow-sm" />
@@ -427,7 +428,7 @@ const LandingPage: React.FC = () => {
             </div>
 
             <div className="flex flex-wrap gap-1.5">
-              {["GPT", "Gemini", "Claude", "Groq"].map((model) => (
+              {["GPT", "Gemini", "Claude"].map((model) => (
                 <span key={model} className="bg-[#FAF9F5] border border-black/5 rounded-lg px-2.5 py-1 text-[9px] font-bold text-[#111827]">{model}</span>
               ))}
             </div>
@@ -467,7 +468,7 @@ const LandingPage: React.FC = () => {
 
         {/* Bento Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          
+
           {/* Card 1: Live Streaming Demo */}
           <div className="bento-card p-6 rounded-[24px] flex flex-col justify-between group min-h-[220px]">
             <div>
@@ -564,11 +565,10 @@ const LandingPage: React.FC = () => {
               <div className="flex flex-col gap-2.5 max-h-[160px] overflow-y-auto">
                 {bentoChatMessages.map((msg, i) => (
                   <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                    <div className={`px-3 py-2 rounded-xl text-xs max-w-[85%] ${
-                      msg.role === "user" 
-                        ? "bg-[#6D5DF6] text-white rounded-tr-none" 
-                        : "bg-white text-[#111827] border border-black/5 rounded-tl-none"
-                    }`}>
+                    <div className={`px-3 py-2 rounded-xl text-xs max-w-[85%] ${msg.role === "user"
+                      ? "bg-[#6D5DF6] text-white rounded-tr-none"
+                      : "bg-white text-[#111827] border border-black/5 rounded-tl-none"
+                      }`}>
                       <p className="text-[8px] font-bold opacity-60 mb-0.5">{msg.mentor}</p>
                       <p className="font-medium">{msg.text}</p>
                     </div>
@@ -721,7 +721,7 @@ const LandingPage: React.FC = () => {
       {/* ── SECTION 4: INTERACTIVE COMPARISON & PROCESS TIMELINE ── */}
       <section className="py-12 px-4 md:px-6 max-w-7xl mx-auto border-t border-black/5">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-          
+
           {/* Left side: Interactive Comparison */}
           <div className="lg:col-span-7 space-y-6">
             <div className="inline-block bg-[#3B82F6]/10 border border-[#3B82F6]/20 text-[#3B82F6] font-bold text-[10px] uppercase tracking-widest px-4 py-1.5 rounded-full shadow-sm">
@@ -741,11 +741,10 @@ const LandingPage: React.FC = () => {
                   <button
                     key={index}
                     onClick={() => handleQASelect(index)}
-                    className={`px-4.5 py-2.5 rounded-full text-xs font-bold border transition-all duration-300 ${
-                      activeQAIndex === index
-                        ? "bg-[#6D5DF6] text-white border-[#6D5DF6]"
-                        : "bg-white border-black/5 text-[#4B5563] hover:bg-white"
-                    }`}
+                    className={`px-4.5 py-2.5 rounded-full text-xs font-bold border transition-all duration-300 ${activeQAIndex === index
+                      ? "bg-[#6D5DF6] text-white border-[#6D5DF6]"
+                      : "bg-white border-black/5 text-[#4B5563] hover:bg-white"
+                      }`}
                   >
                     {qa.question}
                   </button>
@@ -827,7 +826,7 @@ const LandingPage: React.FC = () => {
               ].map((node, i) => (
                 <div key={i} className="relative">
                   {/* Glowing node point */}
-                  <span 
+                  <span
                     className="absolute -left-[29px] top-1.5 w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm flex items-center justify-center"
                     style={{ backgroundColor: node.color }}
                   >
@@ -845,7 +844,7 @@ const LandingPage: React.FC = () => {
 
       {/* ── SECTION 5: TRUST, FEATURE BENTO & FINAL CTA ── */}
       <section className="py-12 px-4 md:px-6 max-w-7xl mx-auto space-y-16">
-        
+
         {/* Trust Badges */}
         <div>
           <p className="text-center text-[10px] font-bold text-[#4B5563] uppercase tracking-widest mb-6">
@@ -869,7 +868,7 @@ const LandingPage: React.FC = () => {
         <div className="space-y-6">
           <h2 className="text-center text-xl font-bold text-[#111827] tracking-tight uppercase">Extended Features Grid</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
+
             {/* Card 1 */}
             <div className="bento-card p-6 rounded-2xl">
               <span className="text-[9px] font-bold text-[#6D5DF6] uppercase tracking-wider block mb-1">State persistence</span>
@@ -954,26 +953,26 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* ── FOOTER ── */}
-      <footer className="border-t border-black/5 bg-white/40 backdrop-blur-md py-10 px-4">
+      <footer className="border-t border-black/5 dark:border-white/[0.06] bg-white/40 dark:bg-[#0D1117]/80 backdrop-blur-md py-10 px-4">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <img src="/tarkai-logo-navbar.png" alt="Tark AI" className="h-6 w-auto object-contain opacity-70" />
-            <span className="text-[10px] text-[#4B5563] font-semibold uppercase tracking-wider">Reason. Learn. Build.</span>
+            <ThemeLogo className="h-6 w-auto object-contain opacity-70 dark:opacity-90" />
+            <span className="text-[10px] text-[#4B5563] dark:text-[#64748B] font-semibold uppercase tracking-wider">Reason. Learn. Build.</span>
           </div>
-          <div className="flex items-center gap-6 text-[10px] text-[#4B5563] font-bold uppercase tracking-wider">
-            <a href="/privacy" className="hover:text-[#111827] transition-colors">Privacy</a>
-            <a href="/terms" className="hover:text-[#111827] transition-colors">Terms</a>
+          <div className="flex items-center gap-6 text-[10px] text-[#4B5563] dark:text-[#64748B] font-bold uppercase tracking-wider">
+            <a href="/privacy" className="hover:text-[#111827] dark:hover:text-[#F8FAFC] transition-colors">Privacy</a>
+            <a href="/terms" className="hover:text-[#111827] dark:hover:text-[#F8FAFC] transition-colors">Terms</a>
             <a
               href="https://github.com/heelpatel01"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1 hover:text-[#111827] transition-colors"
+              className="flex items-center gap-1 hover:text-[#111827] dark:hover:text-[#F8FAFC] transition-colors"
             >
               <Github className="w-3.5 h-3.5" />
               GitHub
             </a>
           </div>
-          <p className="text-[10px] text-[#4B5563] font-medium text-center md:text-right">
+          <p className="text-[10px] text-[#4B5563] dark:text-[#64748B] font-medium text-center md:text-right">
             AI can make mistakes. Verify important info. Built with ❤️ by Heel Patel.
           </p>
         </div>

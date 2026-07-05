@@ -3,21 +3,24 @@
 /* ── Cortax Design Language Tokens (Enterprise SaaS) ── */
 :root {
   /* Light Mode values */
-  --background: #FAF9F5; /* Warm white */
-  --foreground: #111827; /* Dark gray */
-  --card-bg: #FFFFFF;    /* Pure white */
+  --background: #FAF9F5;
+  /* Warm white */
+  --foreground: #111827;
+  /* Dark gray */
+  --card-bg: #FFFFFF;
+  /* Pure white */
   --purple: #6D5DF6;
   --purple-light: #8B5CF6;
   --blue: #3B82F6;
-  
+
   --text-primary: #111827;
   --text-secondary: #4B5563;
   --text-muted: #6B7280;
-  
+
   --border-subtle: rgba(0, 0, 0, 0.06);
   --shadow-subtle: 0 4px 20px 0 rgba(0, 0, 0, 0.03), 0 1px 3px 0 rgba(0, 0, 0, 0.01);
   --shadow-premium: 0 12px 36px 0 rgba(0, 0, 0, 0.05), 0 2px 8px 0 rgba(0, 0, 0, 0.02);
-  
+
   --grid-color: rgba(0, 0, 0, 0.015);
   --navbar-bg: rgba(255, 255, 255, 0.88);
   --strength-bar-bg: rgba(0, 0, 0, 0.05);
@@ -26,23 +29,28 @@
 
 :root.dark {
   /* Dark Mode values (Linear, Vercel, Raycast style) */
-  --background: #0B1220; /* Deep charcoal/slate background */
-  --foreground: #F8FAFC; /* Primary text */
-  --card-bg: rgba(255, 255, 255, 0.04); /* Floating Glass background */
-  
-  --purple: #7B61FF; /* Slightly desaturated brand purple for dark mode comfort */
+  --background: #0B1220;
+  /* Deep charcoal/slate background */
+  --foreground: #F8FAFC;
+  /* Primary text */
+  --card-bg: rgba(255, 255, 255, 0.04);
+  /* Floating Glass background */
+
+  --purple: #7B61FF;
+  /* Slightly desaturated brand purple for dark mode comfort */
   --purple-light: #947EFF;
   --blue: #3B82F6;
-  
+
   --text-primary: #F8FAFC;
   --text-secondary: #94A3B8;
   --text-muted: #64748B;
-  
+
   --border-subtle: rgba(255, 255, 255, 0.08);
   --shadow-subtle: 0 8px 30px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.04);
   --shadow-premium: 0 20px 80px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.08);
-  
-  --grid-color: rgba(255, 255, 255, 0.05); /* 5% Opacity grid in dark mode */
+
+  --grid-color: rgba(255, 255, 255, 0.05);
+  /* 5% Opacity grid in dark mode */
   --navbar-bg: rgba(20, 20, 25, 0.75);
   --strength-bar-bg: rgba(255, 255, 255, 0.08);
   --accent-purple-glow: rgba(123, 97, 255, 0.25);
@@ -231,7 +239,7 @@ button[disabled] * {
 .saas-grid {
   position: absolute;
   inset: 0;
-  background-image: 
+  background-image:
     linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
     linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
   background-size: 40px 40px;
@@ -258,8 +266,15 @@ button[disabled] * {
 
 /* Micro animations */
 @keyframes pulse-slow {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.7; }
+
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
 }
 
 .pulse-active {
@@ -283,8 +298,15 @@ button[disabled] * {
 
 /* Typing Cursor animation */
 @keyframes cursor-blink {
-  from, to { opacity: 0; }
-  50% { opacity: 1; }
+
+  from,
+  to {
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
 }
 
 .typing-cursor {
@@ -336,7 +358,7 @@ button[disabled] * {
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
-.dark .divide-black\/5 > * {
+.dark .divide-black\/5>* {
   border-color: rgba(255, 255, 255, 0.08) !important;
 }
 
@@ -364,6 +386,71 @@ button[disabled] * {
 .dark .bg-black\/\[0\.01\] {
   background-color: rgba(255, 255, 255, 0.01) !important;
 }
+
+/* Dropdown list dark glass override */
+.dark .switcher-dropdown {
+  background: rgba(15, 18, 28, 0.85) !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Contrast overrides for light mode header text visibility */
+.chat-header-name {
+  color: #111111 !important;
+}
+
+.dark .chat-header-name {
+  color: #F8FAFC !important;
+}
+
+.chat-header-subtitle {
+  color: #4B5563 !important;
+}
+
+.dark .chat-header-subtitle {
+  color: #94A3B8 !important;
+}
+
+.chat-header-back-text {
+  color: #4B5563 !important;
+}
+
+.dark .chat-header-back-text {
+  color: #94A3B8 !important;
+}
+
+.chat-switch-text {
+  color: #111111 !important;
+}
+
+.dark .chat-switch-text {
+  color: #D1D5DB !important;
+}
+
+/* Chat Input Composer Glass & Text Overrides */
+.chat-composer-glass {
+  background: rgba(255, 255, 255, 0.75) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.03) !important;
+}
+
+.dark .chat-composer-glass {
+  background: rgba(24, 28, 38, 0.8) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35) !important;
+}
+
+.chat-composer-textarea {
+  color: #111111 !important;
+}
+
+.dark .chat-composer-textarea {
+  color: #ffffff !important;
+}
+
 
 /* Inputs overrides */
 .dark input {
@@ -434,6 +521,7 @@ button[disabled] * {
 .dark .bg-black\/\[0\.01\] {
   background-color: rgba(255, 255, 255, 0.02) !important;
 }
+
 .dark th {
   color: var(--text-secondary) !important;
 }

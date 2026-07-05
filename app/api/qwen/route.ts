@@ -1,10 +1,11 @@
-import { createOpenRouter } from '@openrouter/ai-sdk-provider';
-import { streamText } from 'ai';
 import { NextRequest } from 'next/server';
 import { getPersona } from '@/lib/personaData';
+import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+import { streamText } from 'ai';
+
 
 const openrouter = createOpenRouter({
-  apiKey: process.env.OPENROUTER_API_KEY, 
+  apiKey: process.env.OPENROUTER_API_KEY,
 });
 
 export async function POST(req: NextRequest) {
@@ -20,9 +21,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate message format
-    const isValidMessage = (msg: any) => 
-      msg && typeof msg === 'object' && 
-      typeof msg.content === 'string' && 
+    const isValidMessage = (msg: any) =>
+      msg && typeof msg === 'object' &&
+      typeof msg.content === 'string' &&
       ['user', 'assistant', 'system'].includes(msg.role);
 
     if (!messages.every(isValidMessage)) {
@@ -167,10 +168,10 @@ ${personaInfo?.interaction_examples ? `\n**Interaction Examples (few-shot contex
     const allMessages = [systemMessage, ...messages];
 
     const result = await streamText({
-      model: openrouter("arcee-ai/trinity-large-preview:free"), 
+      model: openrouter("arcee-ai/trinity-large-preview:free"),
       messages: allMessages,
       temperature: 0.7,
-      maxOutputTokens: 3000, 
+      maxOutputTokens: 3000,
     });
 
     // Create a slower streaming response
@@ -178,19 +179,19 @@ ${personaInfo?.interaction_examples ? `\n**Interaction Examples (few-shot contex
     const stream = new ReadableStream({
       async start(controller) {
         const reader = result.textStream.getReader();
-        
+
         try {
           while (true) {
             const { done, value } = await reader.read();
-            
+
             if (done) {
               controller.close();
               break;
             }
-            
+
             // Add delay to slow down the stream
-            await new Promise(resolve => setTimeout(resolve, 40)); 
-            
+            await new Promise(resolve => setTimeout(resolve, 40));
+
             controller.enqueue(encoder.encode(value));
           }
         } catch (error) {
@@ -211,29 +212,29 @@ ${personaInfo?.interaction_examples ? `\n**Interaction Examples (few-shot contex
 
   } catch (error: any) {
     console.error('OpenRouter API error:', error);
-    
+
     // Handle different types of errors
     if (error.name === 'AI_APICallError') {
       return new Response(
-        JSON.stringify({ 
-          error: 'API call failed', 
-          details: error.message 
+        JSON.stringify({
+          error: 'API call failed',
+          details: error.message
         }),
-        { 
-          status: error.statusCode || 500, 
-          headers: { 'Content-Type': 'application/json' } 
+        {
+          status: error.statusCode || 500,
+          headers: { 'Content-Type': 'application/json' }
         }
       );
     }
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: 'Internal server error',
         details: error.message || 'Unknown error occurred'
       }),
-      { 
-        status: 500, 
-        headers: { 'Content-Type': 'application/json' } 
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
       }
     );
   }

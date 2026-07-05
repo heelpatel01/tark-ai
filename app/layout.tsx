@@ -134,7 +134,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="transition-all duration-300">
+    <html lang="en" className="transition-all duration-300" suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{

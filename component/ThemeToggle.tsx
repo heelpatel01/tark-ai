@@ -34,27 +34,54 @@ export const ThemeToggle: React.FC = () => {
   return (
     <button
       onClick={toggleTheme}
-      className="relative flex items-center justify-between p-1 w-14 h-8 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-full transition-all duration-300 focus:outline-none overflow-hidden"
       aria-label="Toggle Theme"
       type="button"
+      className="
+        relative flex-shrink-0 w-[72px] h-10 p-1 rounded-full
+        border border-black/10 dark:border-white/10
+        bg-white/60 dark:bg-white/5 backdrop-blur-md shadow-sm
+        transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6D5DF6]/40
+        overflow-hidden cursor-pointer
+      "
     >
-      {/* Sliding Thumb background */}
+      {/* Sliding thumb */}
       <span
-        className={`absolute top-0.5 left-0.5 w-6 h-6 rounded-full bg-white dark:bg-[#161B22] border border-black/5 dark:border-white/10 shadow-sm transition-transform duration-300 ease-in-out ${
-          theme === "dark" ? "translate-x-6" : ""
-        }`}
+        className={`
+          absolute w-8 h-8 rounded-full bg-white dark:bg-[#1D2430]
+          border border-black/5 dark:border-white/10 shadow-sm
+          transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]
+          top-[3px] left-[3px]
+          ${theme === "dark" ? "translate-x-[32px]" : "translate-x-0"}
+        `}
       />
 
-      {/* Sun Icon */}
-      <span className="flex items-center justify-center w-6 h-6 z-10 text-[#4B5563] dark:text-[#9CA3AF] transition-colors duration-300">
-        <FiSun size={13} className={`transition-opacity duration-300 ${theme === "light" ? "opacity-100" : "opacity-40"}`} />
+      {/* Sun slot */}
+      <span className="absolute left-[3px] top-[3px] w-8 h-8 flex items-center justify-center z-10 pointer-events-none">
+        <FiSun
+          size={13}
+          strokeWidth={3}
+          className={`transition-all duration-300 ${
+            theme === "light"
+              ? "text-amber-500 opacity-100 scale-100"
+              : "text-[#94A3B8] opacity-40 scale-90"
+          }`}
+        />
       </span>
 
-      {/* Moon Icon */}
-      <span className="flex items-center justify-center w-6 h-6 z-10 text-[#4B5563] dark:text-[#9CA3AF] transition-colors duration-300">
-        <FiMoon size={13} className={`transition-opacity duration-300 ${theme === "dark" ? "opacity-100" : "opacity-40"}`} />
+      {/* Moon slot */}
+      <span className="absolute right-[3px] top-[3px] w-8 h-8 flex items-center justify-center z-10 pointer-events-none">
+        <FiMoon
+          size={13}
+          strokeWidth={3}
+          className={`transition-all duration-300 ${
+            theme === "dark"
+              ? "text-[#818CF8] opacity-100 scale-100"
+              : "text-[#94A3B8] opacity-40 scale-90"
+          }`}
+        />
       </span>
     </button>
   );
 };
+
 export default ThemeToggle;
