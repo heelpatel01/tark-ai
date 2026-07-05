@@ -259,17 +259,24 @@ const ChatApp: React.FC = () => {
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
   const [feedback, setFeedback] = useState<{ [id: string]: "like" | "dislike" | null }>({});
   const [inputValue, setInputValue] = useState("");
   const [copiedMsgId, setCopiedMsgId] = useState<string | null>(null);
 
   const abortControllerRef = useRef<AbortController | null>(null);
+  const thinkingTimeoutRef = useRef<any>(null);
 
   const cancelActiveRequest = useCallback(() => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
       abortControllerRef.current = null;
     }
+    if (thinkingTimeoutRef.current) {
+      clearTimeout(thinkingTimeoutRef.current);
+      thinkingTimeoutRef.current = null;
+    }
+    setIsWaitingForResponse(false);
     setIsLoading(false);
   }, []);
 
@@ -277,6 +284,9 @@ const ChatApp: React.FC = () => {
     return () => {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
+      }
+      if (thinkingTimeoutRef.current) {
+        clearTimeout(thinkingTimeoutRef.current);
       }
     };
   }, []);
@@ -325,8 +335,10 @@ const ChatApp: React.FC = () => {
   }, [router]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    messagesEndRef.current?.scrollIntoView({
+      behavior: isWaitingForResponse ? "smooth" : "auto",
+    });
+  }, [messages, isWaitingForResponse]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -389,6 +401,13 @@ const ChatApp: React.FC = () => {
     setInputValue("");
     setIsLoading(true);
 
+    if (thinkingTimeoutRef.current) {
+      clearTimeout(thinkingTimeoutRef.current);
+    }
+    thinkingTimeoutRef.current = setTimeout(() => {
+      setIsWaitingForResponse(true);
+    }, 180);
+
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
 
@@ -418,6 +437,12 @@ const ChatApp: React.FC = () => {
         acc += decoder.decode(value, { stream: true });
 
         if (acc.trim() !== "") {
+          if (thinkingTimeoutRef.current) {
+            clearTimeout(thinkingTimeoutRef.current);
+            thinkingTimeoutRef.current = null;
+          }
+          setIsWaitingForResponse(false);
+
           if (!hasAddedAssistantMsg) {
             hasAddedAssistantMsg = true;
             const assistantMsg: Message = {
@@ -459,6 +484,12 @@ const ChatApp: React.FC = () => {
         }
       }
     } catch (err: any) {
+      if (thinkingTimeoutRef.current) {
+        clearTimeout(thinkingTimeoutRef.current);
+        thinkingTimeoutRef.current = null;
+      }
+      setIsWaitingForResponse(false);
+
       if (err.name === "AbortError") {
         console.log("Fetch aborted");
         return;
@@ -482,6 +513,12 @@ const ChatApp: React.FC = () => {
         return updated;
       });
     } finally {
+      if (thinkingTimeoutRef.current) {
+        clearTimeout(thinkingTimeoutRef.current);
+        thinkingTimeoutRef.current = null;
+      }
+      setIsWaitingForResponse(false);
+
       if (abortControllerRef.current === abortController) {
         abortControllerRef.current = null;
         setIsLoading(false);
@@ -868,6 +905,28 @@ const ChatApp: React.FC = () => {
                 </div>
               );
             })}
+
+            {/* Thinking Indicator */}
+            <div className={`transition-all duration-200 ease-in-out ${isWaitingForResponse ? 'h-9 opacity-100 translate-y-0 py-2' : 'h-0 opacity-0 -translate-y-1 overflow-hidden py-0'}`}>
+              {selectedPersona && (
+                <div className="flex items-center gap-3 px-1 text-[#667085] dark:text-[#94A3B8]">
+                  <img
+                    src={selectedPersona.image}
+                    alt={selectedPersona.name}
+                    className="w-7 h-7 object-cover border border-white dark:border-white/10 shadow rounded-full"
+                  />
+                  <div className="flex items-center gap-2 text-xs font-semibold">
+                    <span>{personaFirstName} is thinking</span>
+                    <span className="flex gap-1 items-center">
+                      <span className="w-1 h-1 bg-[#6D5DF6] rounded-full animate-pulse" />
+                      <span className="w-1 h-1 bg-[#6D5DF6] rounded-full animate-pulse" style={{ animationDelay: "150ms" }} />
+                      <span className="w-1 h-1 bg-[#6D5DF6] rounded-full animate-pulse" style={{ animationDelay: "300ms" }} />
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div ref={messagesEndRef} />
           </div>
         </div>
@@ -898,7 +957,6 @@ const ChatApp: React.FC = () => {
                 onBlur={() => setIsFocused(false)}
                 rows={2}
                 placeholder={`Ask ${personaFirstName} about React, Backend, AI, Career...`}
-                disabled={isLoading}
                 className="
                   flex-1 chat-composer-textarea font-medium text-xs sm:text-sm
                   bg-transparent border-0 focus:outline-none resize-none
