@@ -9,6 +9,14 @@ import {
   FiZap,
   FiClock,
   FiBookOpen,
+  FiCoffee,
+  FiTrendingUp,
+  FiTarget,
+  FiLayers,
+  FiCpu,
+  FiBook,
+  FiSettings,
+  FiAward,
 } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 
@@ -31,7 +39,7 @@ interface Conversation {
   created_at: string;
 }
 
-interface ChatSidebarProps {
+export type ChatSidebarProps = {
   isOpen: boolean;
   isMobile: boolean;
   selectedPersona: PersonaData | null;
@@ -43,28 +51,28 @@ interface ChatSidebarProps {
   onBackToPersonas: () => void;
   onClose: () => void;
   onSendTopic?: (topic: string) => void;
-}
+};
 
 // Per-persona config
 const PERSONA_CONFIG: Record<
   string,
-  { accent: string; traits: { icon: string; label: string }[]; learningPath: string }
+  { accent: string; traits: { icon: React.ReactNode; label: string }[]; learningPath: string }
 > = {
   hiteshchoudhary: {
     accent: "#6D5DF6",
     traits: [
-      { icon: "☕", label: "Chai Code" },
-      { icon: "🚀", label: "Founder" },
-      { icon: "🎯", label: "Practical" },
+      { icon: <FiCoffee className="w-3 h-3 text-[#6D5DF6]" />, label: "Chai Code" },
+      { icon: <FiTrendingUp className="w-3 h-3 text-[#6D5DF6]" />, label: "Founder" },
+      { icon: <FiTarget className="w-3 h-3 text-[#6D5DF6]" />, label: "Practical" },
     ],
     learningPath: "Try: System Design → Backend → Deployment",
   },
   piyushgarg: {
     accent: "#06B6D4",
     traits: [
-      { icon: "⚡", label: "GenAI" },
-      { icon: "🏗️", label: "Teachyst" },
-      { icon: "🔥", label: "Systems" },
+      { icon: <FiZap className="w-3 h-3 text-[#06B6D4]" />, label: "GenAI" },
+      { icon: <FiLayers className="w-3 h-3 text-[#06B6D4]" />, label: "Teachyst" },
+      { icon: <FiCpu className="w-3 h-3 text-[#06B6D4]" />, label: "Systems" },
     ],
     learningPath: "Try: AI Agents → MCP → Loop Engineering",
   },
@@ -73,20 +81,20 @@ const PERSONA_CONFIG: Record<
 const DEFAULT_CONFIG = {
   accent: "#6D5DF6",
   traits: [
-    { icon: "🤖", label: "AI Mentor" },
-    { icon: "💡", label: "Educator" },
-    { icon: "🛠️", label: "Practical" },
+    { icon: <FiCpu className="w-3 h-3 text-[#6D5DF6]" />, label: "AI Mentor" },
+    { icon: <FiBook className="w-3 h-3 text-[#6D5DF6]" />, label: "Educator" },
+    { icon: <FiSettings className="w-3 h-3 text-[#6D5DF6]" />, label: "Practical" },
   ],
   learningPath: "Try: Backend → System Design → AI",
 };
 
 const QUICK_TOPICS = [
-  { label: "Backend", icon: "🔧" },
-  { label: "React", icon: "⚛️" },
-  { label: "AI / LLMs", icon: "🧠" },
-  { label: "Career", icon: "🎯" },
-  { label: "System Design", icon: "🏗️" },
-  { label: "Projects", icon: "🚀" },
+  { label: "Backend", icon: <FiSettings className="w-3.5 h-3.5" /> },
+  { label: "React", icon: <FiLayers className="w-3.5 h-3.5" /> },
+  { label: "AI / LLMs", icon: <FiCpu className="w-3.5 h-3.5" /> },
+  { label: "Career", icon: <FiTarget className="w-3.5 h-3.5" /> },
+  { label: "System Design", icon: <FiAward className="w-3.5 h-3.5" /> },
+  { label: "Projects", icon: <FiTrendingUp className="w-3.5 h-3.5" /> },
 ];
 
 function timeAgo(iso: string): string {
@@ -122,56 +130,56 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   );
 
   const sidebarContent = (
-    <div className="flex flex-col h-full min-h-0 overflow-hidden">
+    <div className="flex flex-col h-full min-h-0 overflow-hidden bg-white/80 backdrop-blur-2xl">
 
-      {/* ── Logo ── */}
+      {/* Logo */}
       <div
-        className="px-4 pt-4 pb-3 border-b-2 border-black cursor-pointer flex items-center gap-2.5 hover:bg-gray-50 transition-colors flex-shrink-0"
+        className="px-5 pt-5 pb-4 border-b border-black/5 cursor-pointer flex items-center gap-2.5 hover:bg-black/[0.02] transition-colors flex-shrink-0"
         onClick={() => { if (isMobile) onClose(); router.push("/"); }}
       >
-        <img src="/tarkai-logo-navbar.png" alt="Tark AI" className="h-8 w-auto object-contain" />
+        <img src="/tarkai-logo-navbar.png" alt="Tark AI" className="h-7 w-auto object-contain opacity-80" />
         <div className="flex flex-col">
-          <span className="font-black text-black text-sm leading-none">Tark AI</span>
-          <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">
+          <span className="font-bold text-xs text-[#111111] leading-none">Tark AI</span>
+          <span className="text-[8px] font-bold text-[#667085] uppercase tracking-widest mt-0.5">
             Mentor Platform
           </span>
         </div>
       </div>
 
-      {/* ── Current Mentor Card ── */}
+      {/* Current Mentor Card */}
       {selectedPersona && (
-        <div className="px-3 py-3 border-b-2 border-black flex-shrink-0 bg-gray-50">
-          <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2.5">
+        <div className="px-4 py-4 border-b border-black/5 flex-shrink-0 bg-black/[0.01]">
+          <p className="text-[8px] font-bold text-[#667085] uppercase tracking-widest mb-3">
             Current Mentor
           </p>
-          <div className="flex items-center gap-3 mb-3">
+          <div className="flex items-center gap-3 mb-3.5">
             <div className="relative flex-shrink-0">
               <img
                 src={selectedPersona.image}
                 alt={selectedPersona.name}
-                className="w-11 h-11 object-cover border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] rounded-full"
+                className="w-10 h-10 object-cover border border-white shadow-sm rounded-full"
               />
               <span
-                className="absolute -bottom-0.5 -right-0.5 w-3 h-3 border-2 border-white rounded-full"
+                className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 border border-white rounded-full"
                 style={{ background: config.accent }}
               />
             </div>
             <div className="min-w-0">
-              <h3 className="font-black text-black text-sm leading-tight truncate">
+              <h3 className="font-bold text-[#111111] text-xs leading-tight truncate">
                 {selectedPersona.name}
               </h3>
-              <p className="text-[10px] text-gray-400 font-medium mt-0.5 line-clamp-1">
+              <p className="text-[10px] text-[#667085] font-semibold mt-0.5 truncate">
                 {selectedPersona.role.split(",")[0]}
               </p>
             </div>
           </div>
 
           {/* Trait pills */}
-          <div className="flex flex-wrap gap-1 mb-3">
+          <div className="flex flex-wrap gap-1.5 mb-3.5">
             {config.traits.map((t) => (
               <span
                 key={t.label}
-                className="inline-flex items-center gap-1 px-2 py-0.5 border border-black/20 text-[10px] font-bold text-black/70 bg-white"
+                className="inline-flex items-center gap-1 px-2.5 py-0.5 border border-black/5 text-[9px] font-bold text-[#667085] bg-white rounded-full"
               >
                 {t.icon} {t.label}
               </span>
@@ -180,55 +188,50 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
           <button
             onClick={onBackToPersonas}
-            className="w-full flex items-center justify-center gap-1.5 text-[10px] font-black text-black border-2 border-black px-3 py-1.5 hover:bg-yellow-100 transition-colors shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]"
+            className="w-full flex items-center justify-center gap-1.5 text-[9px] font-bold text-[#111111] border border-black/10 bg-white hover:bg-[#F8FAFC] py-2 rounded-full shadow-sm hover:shadow transition-all"
           >
             <FiArrowLeft size={10} strokeWidth={3} />
-            Switch Mentor
+            Explore Personas
           </button>
         </div>
       )}
 
-      {/* ── New Chat Button ── */}
-      <div className="px-3 py-3 border-b-2 border-black flex-shrink-0">
+      {/* New Chat Button */}
+      <div className="px-4 py-4 border-b border-black/5 flex-shrink-0">
         <button
           onClick={onNewChat}
           className="
             w-full flex items-center justify-center gap-2
-            text-white font-black uppercase text-xs tracking-wider
-            py-2.5 px-4
-            border-2 border-black
-            shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]
-            hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]
-            hover:translate-x-[2px] hover:translate-y-[2px]
-            transition-all duration-150
+            text-white font-bold uppercase text-[10px] tracking-wider
+            py-3 px-4 rounded-full shadow-sm hover:opacity-90 transition-all
           "
-          style={{ background: `linear-gradient(135deg, ${config.accent}, ${config.accent}bb)` }}
+          style={{ background: `linear-gradient(135deg, ${config.accent}, ${config.accent}cc)` }}
         >
-          <FiPlus strokeWidth={3} size={14} />
+          <FiPlus strokeWidth={3} size={13} />
           New Session
         </button>
       </div>
 
-      {/* ── Pinned Insights (placeholder) ── */}
-      <div className="px-3 py-3 border-b-2 border-black flex-shrink-0 bg-violet-50/50">
+      {/* Learning Path */}
+      <div className="px-4 py-4 border-b border-black/5 flex-shrink-0 bg-[#6D5DF6]/[0.02]">
         <div className="flex items-center gap-2 mb-2">
-          <FiBookOpen size={11} strokeWidth={3} className="text-violet-400" />
-          <p className="text-[9px] font-black text-violet-400 uppercase tracking-widest">
+          <FiBookOpen size={11} strokeWidth={3} className="text-[#6D5DF6]" />
+          <p className="text-[8px] font-bold text-[#6D5DF6] uppercase tracking-widest">
             Learning Path
           </p>
         </div>
-        <div className="bg-white border border-black/10 px-3 py-2">
-          <p className="text-[10px] font-bold text-black/60 leading-relaxed">
+        <div className="bg-white/75 border border-[#6D5DF6]/10 rounded-xl px-3 py-2 shadow-[0_2px_8px_rgba(0,0,0,0.01)]">
+          <p className="text-[10px] font-semibold text-[#667085] leading-relaxed">
             {config.learningPath}
           </p>
         </div>
       </div>
 
-      {/* ── Conversation Timeline ── */}
-      <div className="flex-1 min-h-0 flex flex-col overflow-hidden px-3 py-3">
+      {/* Conversation Timeline */}
+      <div className="flex-1 min-h-0 flex flex-col overflow-hidden px-4 py-4">
         <div className="flex items-center gap-2 mb-3 flex-shrink-0">
-          <FiClock size={11} strokeWidth={3} className="text-gray-400" />
-          <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
+          <FiClock size={11} strokeWidth={3} className="text-[#667085]" />
+          <p className="text-[8px] font-bold text-[#667085] uppercase tracking-widest">
             Recent Sessions
           </p>
         </div>
@@ -236,11 +239,9 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
         <div className="flex-1 overflow-y-auto space-y-1.5 min-h-0">
           {filteredConversations.length === 0 ? (
             <div className="text-center py-6">
-              <FiMessageSquare className="w-6 h-6 text-gray-200 mx-auto mb-2" />
-              <p className="text-[10px] text-gray-400 font-medium">
+              <FiMessageSquare className="w-5 h-5 text-black/10 mx-auto mb-2" />
+              <p className="text-[10px] text-[#667085] font-semibold">
                 No sessions yet.
-                <br />
-                Start your first conversation!
               </p>
             </div>
           ) : (
@@ -248,23 +249,22 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
               <div
                 key={conv.id}
                 onClick={() => { onSelectConversation(conv.id); if (isMobile) onClose(); }}
-                className={`group flex items-start justify-between gap-2 p-2.5 border-l-2 cursor-pointer transition-all duration-150 ${
-                  activeConversationId === conv.id
-                    ? "border-l-violet-500 bg-violet-50 border border-violet-200"
-                    : "border-l-transparent border border-transparent hover:bg-gray-50 hover:border-black/10"
-                }`}
+                className={`group flex items-start justify-between gap-2 p-2.5 rounded-xl border cursor-pointer transition-all duration-150 ${activeConversationId === conv.id
+                  ? "border-[#6D5DF6]/30 bg-[#6D5DF6]/5 border"
+                  : "border-transparent hover:bg-black/[0.01] hover:border-black/5"
+                  }`}
               >
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-black truncate leading-snug">
+                  <p className="text-xs font-bold text-[#111111] truncate leading-snug">
                     {conv.title}
                   </p>
-                  <p className="text-[9px] text-gray-400 font-medium mt-0.5">
+                  <p className="text-[9px] text-[#667085] font-semibold mt-0.5">
                     {timeAgo(conv.created_at)}
                   </p>
                 </div>
                 <button
                   onClick={(e) => { e.stopPropagation(); onDeleteConversation(conv.id); }}
-                  className="opacity-0 group-hover:opacity-100 p-1 text-gray-300 hover:text-red-500 transition-all flex-shrink-0"
+                  className="opacity-0 group-hover:opacity-100 p-1 text-[#667085] hover:text-red-500 transition-all flex-shrink-0"
                   aria-label="Delete session"
                 >
                   <FiTrash2 size={11} strokeWidth={2.5} />
@@ -275,12 +275,12 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
         </div>
       </div>
 
-      {/* ── Quick Topics ── */}
+      {/* Quick Topics */}
       {onSendTopic && (
-        <div className="px-3 py-3 border-t-2 border-black flex-shrink-0 bg-gray-50">
-          <div className="flex items-center gap-2 mb-2.5">
-            <FiZap size={11} strokeWidth={3} className="text-gray-400" />
-            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
+        <div className="px-4 py-4 border-t border-black/5 flex-shrink-0 bg-black/[0.01]">
+          <div className="flex items-center gap-2 mb-3">
+            <FiZap size={11} strokeWidth={3} className="text-[#667085]" />
+            <p className="text-[8px] font-bold text-[#667085] uppercase tracking-widest">
               Quick Topics
             </p>
           </div>
@@ -289,20 +289,20 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
               <button
                 key={label}
                 onClick={() => { onSendTopic(label); if (isMobile) onClose(); }}
-                className="text-[10px] font-bold text-black border-2 border-black px-2 py-1.5 hover:bg-yellow-300 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all duration-150 text-left flex items-center gap-1.5 bg-white"
+                className="text-[9px] font-semibold text-[#111111] border border-black/5 bg-white rounded-lg px-2 py-2 hover:bg-[#F8FAFC] shadow-sm hover:shadow transition-all text-left flex items-center gap-1.5"
               >
                 <span>{icon}</span>
-                {label}
+                <span className="truncate">{label}</span>
               </button>
             ))}
           </div>
         </div>
       )}
 
-      {/* ── Footer ── */}
-      <div className="px-4 py-2 border-t border-black/10 flex-shrink-0">
-        <p className="text-[9px] text-gray-300 font-medium text-center">
-          Reason. Learn. Build. — Tark AI
+      {/* Footer */}
+      <div className="px-5 py-3 border-t border-black/5 flex-shrink-0 text-center">
+        <p className="text-[8px] text-[#667085] font-semibold uppercase tracking-wider">
+          Tark AI · Mentor Platform
         </p>
       </div>
     </div>
@@ -312,18 +312,17 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
     return (
       <>
         <div
-          className={`md:hidden fixed inset-y-0 left-0 z-40 w-72 transform ${
-            isOpen ? "translate-x-0" : "-translate-x-full"
-          } transition-transform duration-300 ease-in-out bg-white border-r-2 border-black flex flex-col h-full overflow-hidden shadow-xl`}
+          className={`md:hidden fixed inset-y-0 left-0 z-40 w-72 transform ${isOpen ? "translate-x-0" : "-translate-x-full"
+            } transition-transform duration-300 ease-in-out bg-white border-r border-black/10 flex flex-col h-full overflow-hidden shadow-2xl`}
         >
-          <div className="flex items-center justify-between px-4 py-3 border-b-2 border-black bg-white flex-shrink-0">
-            <span className="font-black text-black text-sm uppercase tracking-wider">Mentor Session</span>
+          <div className="flex items-center justify-between px-4 py-4 border-b border-black/5 bg-white flex-shrink-0">
+            <span className="font-bold text-xs uppercase tracking-wider text-[#111111]">Mentor Session</span>
             <button
               onClick={onClose}
-              className="p-1.5 border-2 border-black text-black hover:bg-yellow-100 transition-colors"
+              className="p-1.5 rounded-full border border-black/10 text-[#111111] hover:bg-black/5 transition-colors"
               aria-label="Close sidebar"
             >
-              <FiX size={16} strokeWidth={3} />
+              <FiX size={15} strokeWidth={3} />
             </button>
           </div>
           <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
@@ -332,7 +331,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
         </div>
         {isOpen && (
           <div
-            className="md:hidden fixed inset-0 bg-black/40 z-30 backdrop-blur-sm"
+            className="md:hidden fixed inset-0 bg-black/10 backdrop-blur-sm z-30"
             onClick={onClose}
           />
         )}
@@ -342,11 +341,12 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
   return (
     <aside
-      className={`hidden md:flex flex-col z-30 overflow-hidden
+      className={`hidden md:flex flex-col z-30 overflow-hidden border-r border-black/5
         ${isOpen ? "w-72" : "w-0"} transition-[width] duration-300 ease-in-out
-        bg-white border-r-2 border-black flex-shrink-0`}
+        bg-white flex-shrink-0`}
     >
       {sidebarContent}
     </aside>
   );
 };
+

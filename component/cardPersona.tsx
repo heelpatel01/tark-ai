@@ -1,375 +1,347 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import {
-  MessageCircle,
-  ArrowRight,
-  Layers,
-  Terminal,
-  Bot,
-  CheckCircle2,
-  GitBranch,
-  Cpu,
-} from "lucide-react";
-import {
-  PERSONAS_BY_CATEGORY,
-  CATEGORY_NAMES,
-  getCategoryKeys,
-  PersonaInfo,
-  PersonaCategory,
-} from "@/type/personaInfo";
+import { FiArrowRight, FiCheck, FiCpu, FiSettings, FiTarget, FiHelpCircle } from "react-icons/fi";
 
-// Strength data per persona key
-const PERSONA_STRENGTHS: Record<string, { label: string; value: number }[]> = {
-  hiteshchoudhary: [
-    { label: "Full Stack", value: 80 },
-    { label: "Career Guidance", value: 92 },
-    { label: "Backend", value: 85 },
-  ],
-  piyushgarg: [
-    { label: "AI & LLMs", value: 95 },
-    { label: "System Design", value: 88 },
-    { label: "Backend", value: 90 },
-  ],
-};
-
-const DEFAULT_STRENGTHS = [
-  { label: "Teaching", value: 80 },
-  { label: "Practical", value: 75 },
-  { label: "Engineering", value: 82 },
+const MENTORS = [
+  {
+    key: "hiteshchoudhary",
+    name: "Hitesh Choudhary",
+    role: "Founder • Chai Code",
+    avatar: "/hiteshchoudhary.png",
+    accent: "#6D5DF6",
+    quote: "Build projects, not tutorials.",
+    bestFor: ["Beginners", "Full Stack", "Career Growth", "JavaScript"],
+    style: ["Practical", "Hinglish", "Project-first"],
+    whoShouldChoose: "If you learn best by building real projects and want simple explanations.",
+    stats: ["Practical Learning", "Project-first", "Career Guidance"],
+    buttonLabel: "Talk to Hitesh →",
+  },
+  {
+    key: "piyushgarg",
+    name: "Piyush Garg",
+    role: "Founder • Teachyst",
+    avatar: "/piyushgarg.png",
+    accent: "#06B6D4",
+    quote: "Understand systems before writing code.",
+    bestFor: ["AI", "Backend", "Architecture", "System Design"],
+    style: ["Analytical", "Architecture", "Modern AI"],
+    whoShouldChoose: "If you enjoy understanding why things work before building them.",
+    stats: ["AI Engineering", "Backend Systems", "Architecture"],
+    buttonLabel: "Talk to Piyush →",
+  },
 ];
 
-// Style tags per persona
-const PERSONA_STYLE_TAGS: Record<string, string[]> = {
-  hiteshchoudhary: ["Hinglish", "Practical", "Encourager"],
-  piyushgarg: ["Hinglish", "Systems", "Witty"],
-};
-
-// Topic tags per persona
-const PERSONA_TOPICS: Record<string, string[]> = {
-  hiteshchoudhary: ["JavaScript", "Node.js", "Startup", "DSA"],
-  piyushgarg: ["AI Agents", "MCP", "TypeScript", "Docker"],
-};
-
-// Accent color per persona
-const PERSONA_ACCENT: Record<string, string> = {
-  hiteshchoudhary: "#6D5DF6",
-  piyushgarg: "#06B6D4",
-};
-
-const DEFAULT_ACCENT = "#6D5DF6";
-
-// Category colors
-const CATEGORY_COLORS: Record<
-  PersonaCategory,
-  { bg: string; hover: string; border: string }
-> = {
-  "tech-educators": {
-    bg: "bg-violet-100",
-    hover: "hover:bg-violet-200",
-    border: "border-violet-400",
-  },
-};
-
-// Category icons
-const CATEGORY_ICONS: Record<
-  PersonaCategory,
-  React.ComponentType<{ className?: string }>
-> = {
-  "tech-educators": Terminal,
-};
+const COMPARISON_ROWS = [
+  { action: "Learn JavaScript", mentor: "Hitesh" },
+  { action: "Build Full Stack apps", mentor: "Hitesh" },
+  { action: "Crack interviews", mentor: "Hitesh" },
+  { action: "Learn AI Agents", mentor: "Piyush" },
+  { action: "Understand MCP", mentor: "Piyush" },
+  { action: "System Design", mentor: "Piyush" },
+  { action: "Backend Scaling", mentor: "Piyush" },
+];
 
 export default function PersonaCards() {
   const router = useRouter();
-  const [activeCategory, setActiveCategory] = useState<PersonaCategory | "all">("all");
-  const categories = getCategoryKeys();
 
-  const handlePersonaSelect = (persona: PersonaInfo) => {
+  const handleMentorSelect = (key: string, name: string, role: string, avatar: string, quote: string) => {
     const personaData = {
-      key: persona.key,
-      name: persona.name,
-      role: persona.role,
-      personality: persona.personality,
-      image: persona.image || "",
+      key,
+      name,
+      role,
+      personality: quote,
+      image: avatar,
       communicationStyle: "Engaging and thoughtful",
       tone: "Professional yet approachable",
-      expertise: "Various fields of knowledge",
+      expertise: "Software Engineering",
       additionalContext: "",
     };
     localStorage.setItem("selectedPersona", JSON.stringify(personaData));
     router.push("/chat");
   };
 
-  const getDisplayedCategories = (): PersonaCategory[] => {
-    if (activeCategory === "all") return categories;
-    return [activeCategory];
-  };
-
   return (
-    <div className="relative min-h-screen flex flex-col px-4 md:px-8 py-8 md:py-12 neo-grid">
+    <div className="relative min-h-screen bg-[#FAF9F5] flex flex-col font-sans pb-16">
+      
+      {/* SaaS background grid */}
+      <div className="saas-grid" />
 
-      {/* Subtle radial */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10"
-        style={{
-          background: `
-            radial-gradient(ellipse 55% 35% at 15% 10%, rgba(109,93,246,0.06) 0%, transparent 70%),
-            radial-gradient(ellipse 45% 30% at 85% 85%, rgba(6,182,212,0.05) 0%, transparent 70%)
-          `,
-        }}
-      />
+      {/* Hero Radial Glow */}
+      <div className="hero-glow pointer-events-none" />
 
-      {/* Engineering decorations (subtle) */}
-      <div aria-hidden className="absolute top-32 right-8 hidden lg:block font-mono text-xs font-bold text-black/[0.06] select-none rotate-[2deg]">
-        → GET /api/personas
-      </div>
-      <div aria-hidden className="absolute bottom-64 left-8 hidden lg:block font-mono text-xs font-bold text-black/[0.06] select-none -rotate-[1deg]">
-        {"const persona = await ai.load()"}
-      </div>
-      <div aria-hidden className="absolute top-[40%] right-12 hidden lg:block font-mono text-xs font-bold text-black/[0.05] select-none rotate-[1.5deg]">
-        MCP → tool.execute()
-      </div>
-
-      {/* ── Page Header ── */}
-      <div className="text-center mb-12 md:mb-16 relative z-10 animate-fade-up">
-        <div className="inline-block bg-violet-600 text-white font-black text-xs uppercase tracking-widest px-4 py-2 border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] mb-6 -rotate-1">
-          AI Mentors
-        </div>
-        <h1 className="text-5xl md:text-7xl font-black text-black mb-6 tracking-tight uppercase leading-[0.9]">
-          Meet the{" "}
-          <span
-            className="inline-block text-white px-3 border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transform -rotate-2 mt-2"
-            style={{ background: "linear-gradient(135deg, #6D5DF6 0%, #A855F7 60%, #06B6D4 100%)" }}
-          >
-            Personas
-          </span>
+      {/* Hero Section */}
+      <section className="pt-16 pb-12 px-4 md:px-8 max-w-4xl mx-auto text-center">
+        <span className="inline-block bg-[#6D5DF6]/10 border border-[#6D5DF6]/20 text-[#6D5DF6] font-bold text-[10px] uppercase tracking-widest px-4 py-1.5 rounded-full shadow-sm mb-4">
+          AI Engineering Mentors
+        </span>
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#111827] leading-[1.1] tracking-tight mb-4 max-w-2xl mx-auto">
+          Choose the mentor
+          <br />
+          that matches your
+          <br />
+          <span className="text-[#6D5DF6]">thinking style.</span>
         </h1>
-        <div className="max-w-2xl mx-auto border-2 border-black bg-white/90 p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.7)] backdrop-blur-sm">
-          <p className="text-sm md:text-base font-medium text-gray-600 leading-relaxed">
-            All conversations are AI-generated. Personas are simulated for{" "}
-            <span className="font-bold text-black">educational purposes</span> only.
-          </p>
-        </div>
-      </div>
+        <p className="text-sm md:text-base text-[#4B5563] font-semibold max-w-lg mx-auto leading-relaxed">
+          Every mentor has a different way of explaining concepts.
+          <br />
+          Pick the one that matches how you like to learn.
+        </p>
+      </section>
 
-      {/* ── Category Filter Tabs ── */}
-      <div className="flex flex-wrap justify-center gap-3 mb-12 md:mb-16 relative z-10">
-        {/* All Tab */}
-        <button
-          onClick={() => setActiveCategory("all")}
-          className={`
-            px-6 py-2.5 font-black text-xs uppercase tracking-wider
-            border-2 border-black
-            transition-all duration-200 flex items-center gap-2
-            ${activeCategory === "all"
-              ? "bg-black text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] translate-x-[1px] translate-y-[1px]"
-              : "bg-white text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px]"
-            }
-          `}
-        >
-          <Layers className="w-3.5 h-3.5" /> All
-        </button>
-
-        {categories.map((category) => {
-          const Icon = CATEGORY_ICONS[category];
-          return (
-            <button
-              key={category}
-              onClick={() => setActiveCategory(category)}
-              className={`
-                px-6 py-2.5 font-black text-xs uppercase tracking-wider
-                border-2 border-black
-                transition-all duration-200 flex items-center gap-2
-                ${activeCategory === category
-                  ? "bg-violet-600 text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] translate-x-[1px] translate-y-[1px]"
-                  : "bg-white text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px]"
-                }
-              `}
+      {/* Mentor Cards Side-by-Side */}
+      <section className="px-4 md:px-8 max-w-5xl mx-auto w-full mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch relative">
+          
+          {MENTORS.map((mentor) => (
+            <div
+              key={mentor.key}
+              className="bento-card p-8 rounded-[32px] flex flex-col justify-between hover:-translate-y-1 transition-all duration-300"
             >
-              {Icon && <Icon className="w-3.5 h-3.5" />}
-              {CATEGORY_NAMES[category]}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* ── Persona Cards ── */}
-      <div className="space-y-14 max-w-7xl mx-auto w-full relative z-10">
-        {getDisplayedCategories().map((category) => {
-          const CategoryIcon = CATEGORY_ICONS[category];
-          return (
-            <div key={category} className="space-y-8">
-              {/* Category Header */}
-              {activeCategory === "all" && (
-                <div className="flex items-center gap-4 mb-2">
-                  <h2
-                    className="inline-flex items-center gap-2 text-xl md:text-2xl font-black text-white uppercase px-4 py-2 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-                    style={{ background: "linear-gradient(135deg, #6D5DF6, #06B6D4)" }}
-                  >
-                    {CategoryIcon && <CategoryIcon className="w-5 h-5" />}
-                    {CATEGORY_NAMES[category]}
-                  </h2>
-                  <div className="flex-1 h-[2px] bg-black/10 hidden md:block" />
+              {/* Top Section */}
+              <div className="space-y-6">
+                {/* Avatar & Header */}
+                <div className="flex items-center gap-4">
+                  <div className="relative w-16 h-16">
+                    <Image
+                      src={mentor.avatar}
+                      alt={mentor.name}
+                      fill
+                      sizes="64px"
+                      className="object-cover rounded-full border border-white shadow-md"
+                    />
+                    <span
+                      className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-white"
+                      style={{ backgroundColor: mentor.accent }}
+                    />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-extrabold text-[#111827]">{mentor.name}</h3>
+                    <p className="text-xs text-[#4B5563] font-bold uppercase tracking-wider mt-0.5">{mentor.role}</p>
+                  </div>
                 </div>
-              )}
 
-              {/* Cards Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-8 max-w-4xl">
-                {PERSONAS_BY_CATEGORY[category].map((persona, i) => {
-                  const accent = PERSONA_ACCENT[persona.key] || DEFAULT_ACCENT;
-                  const strengths = PERSONA_STRENGTHS[persona.key] || DEFAULT_STRENGTHS;
-                  const styleTags = PERSONA_STYLE_TAGS[persona.key] || ["Practical", "AI", "Mentor"];
-                  const topics = PERSONA_TOPICS[persona.key] || ["Engineering", "AI", "Projects"];
+                {/* One-Line Teaching Philosophy */}
+                <div className="py-1">
+                  <p className="text-lg font-bold text-[#111827] leading-snug">
+                    "{mentor.quote}"
+                  </p>
+                </div>
 
-                  return (
-                    <div
-                      key={persona.key}
-                      className="group bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] mentor-card-hover flex flex-col overflow-hidden animate-fade-up"
-                      style={{ animationDelay: `${i * 0.12}s` }}
-                    >
-                      {/* Top accent stripe */}
-                      <div className="h-1.5" style={{ background: `linear-gradient(90deg, ${accent}, transparent)` }} />
+                {/* Best For / Expertise Chips */}
+                <div className="space-y-2">
+                  <p className="text-[9px] font-bold text-[#667085] uppercase tracking-wider">Best For</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {mentor.bestFor.map((item) => (
+                      <span
+                        key={item}
+                        className="bg-[#FAF9F5] border border-black/5 text-[#111827] text-xs font-bold px-3 py-1 rounded-lg"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
 
-                      {/* Image Section */}
-                      {persona.image && (
-                        <div className="relative h-56 border-b-4 border-black overflow-hidden">
-                          <Image
-                            src={persona.image}
-                            alt={persona.name}
-                            fill
-                            sizes="(max-width: 640px) 100vw, 50vw"
-                            className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                {/* Teaching Style Checkmarks */}
+                <div className="space-y-2">
+                  <p className="text-[9px] font-bold text-[#667085] uppercase tracking-wider">Teaching Style</p>
+                  <div className="flex flex-wrap gap-2">
+                    {mentor.style.map((item) => (
+                      <span
+                        key={item}
+                        className="inline-flex items-center gap-1 text-xs font-bold text-[#4B5563]"
+                      >
+                        <FiCheck className="text-green-600 w-3.5 h-3.5" strokeWidth={3} />
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
 
-                          {/* AI Mentor badge */}
-                          <div className="absolute top-3 left-3 flex items-center gap-1 bg-black/80 backdrop-blur-sm border border-white/20 px-2.5 py-1">
-                            <Bot className="w-3 h-3 text-violet-400" />
-                            <span className="text-[10px] font-black text-white uppercase tracking-wider">AI Mentor</span>
-                          </div>
+                {/* Who should choose Hitesh/Piyush */}
+                <div className="bg-[#FAF9F5] border border-black/5 rounded-2xl p-4.5 space-y-1">
+                  <p className="text-[9px] font-bold text-[#667085] uppercase tracking-wider">Who should choose {mentor.name.split(" ")[0]}?</p>
+                  <p className="text-xs font-semibold text-[#4B5563] leading-relaxed">
+                    "{mentor.whoShouldChoose}"
+                  </p>
+                </div>
+              </div>
 
-                          {/* Category badge */}
-                          <div
-                            className="absolute top-3 right-3 flex items-center gap-1 border border-black/30 px-2 py-1"
-                            style={{ background: `${accent}cc`, backdropFilter: "blur(4px)" }}
-                          >
-                            {CategoryIcon && <CategoryIcon className="w-3 h-3 text-white" />}
-                            <span className="text-[9px] font-black text-white uppercase">
-                              {CATEGORY_NAMES[category].split(" ")[0]}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Content */}
-                      <div className="flex flex-col flex-grow p-6 bg-white">
-                        {/* Name + Role */}
-                        <h3 className="text-2xl font-black text-black uppercase leading-tight tracking-tight mb-1">
-                          {persona.name}
-                        </h3>
-                        {persona.role && (
-                          <p className="text-xs font-medium text-gray-400 mb-4 line-clamp-1">{persona.role}</p>
-                        )}
-
-                        {/* Personality quote */}
-                        {persona.personality && (
-                          <div className="border-l-4 pl-3 mb-5" style={{ borderColor: accent }}>
-                            <p className="text-xs font-medium text-black/60 leading-relaxed line-clamp-2">
-                              {persona.personality}
-                            </p>
-                          </div>
-                        )}
-
-                        {/* Strength meters */}
-                        <div className="mb-5 space-y-2.5">
-                          <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-2">Strengths</p>
-                          {strengths.map(({ label, value }) => (
-                            <div key={label}>
-                              <div className="flex justify-between items-center mb-1">
-                                <span className="text-[10px] font-bold text-black">{label}</span>
-                                <span className="text-[10px] font-black" style={{ color: accent }}>{value}%</span>
-                              </div>
-                              <div className="strength-bar">
-                                <div
-                                  className="strength-bar-fill"
-                                  style={{
-                                    "--target-width": `${value}%`,
-                                    background: `linear-gradient(90deg, ${accent}, ${accent}99)`,
-                                  } as React.CSSProperties}
-                                />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* Topics */}
-                        <div className="mb-5">
-                          <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-2">Topics</p>
-                          <div className="flex flex-wrap gap-1.5">
-                            {topics.map(t => (
-                              <span
-                                key={t}
-                                className="text-[10px] font-bold border-2 border-black px-2 py-0.5"
-                                style={{ background: `${accent}18`, color: accent }}
-                              >
-                                {t}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Style tags */}
-                        <div className="flex flex-wrap gap-1.5 mb-5">
-                          {styleTags.map(s => (
-                            <span
-                              key={s}
-                              className="inline-flex items-center gap-1 text-[10px] font-bold bg-gray-50 border border-gray-200 px-2 py-0.5"
-                            >
-                              <CheckCircle2 className="w-2.5 h-2.5" style={{ color: accent }} />
-                              {s}
-                            </span>
-                          ))}
-                        </div>
-
-                        {/* CTA */}
-                        <div className="pt-4 mt-auto border-t-2 border-black/10">
-                          <button
-                            onClick={() => handlePersonaSelect(persona)}
-                            className="
-                              w-full group/btn relative overflow-hidden
-                              text-white font-black text-sm uppercase tracking-wider
-                              border-2 border-black
-                              py-3.5 px-4
-                              shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
-                              hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]
-                              hover:translate-x-[3px] hover:translate-y-[3px]
-                              active:shadow-none active:translate-x-[4px] active:translate-y-[4px]
-                              transition-all duration-200
-                              flex items-center justify-center gap-2
-                            "
-                            style={{ background: `linear-gradient(135deg, ${accent}, ${accent}bb)` }}
-                          >
-                            <span
-                              aria-hidden="true"
-                              className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-500 ease-in-out"
-                            />
-                            <span className="relative flex items-center gap-2">
-                              Begin Session
-                              <ArrowRight className="w-4 h-4 stroke-[2.5px] relative transition-transform duration-200 group-hover/btn:translate-x-0.5" />
-                            </span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+              {/* Bottom CTA Button */}
+              <div className="pt-8">
+                <button
+                  onClick={() => handleMentorSelect(mentor.key, mentor.name, mentor.role, mentor.avatar, mentor.quote)}
+                  className="w-full py-4 text-white font-bold text-sm uppercase tracking-wider rounded-xl shadow-md transition-all duration-200"
+                  style={{
+                    background: `linear-gradient(135deg, ${mentor.accent} 0%, ${mentor.accent}dd 100%)`,
+                    boxShadow: `0 4px 14px 0 rgba(0, 0, 0, 0.05)`,
+                  }}
+                >
+                  {mentor.buttonLabel}
+                </button>
               </div>
             </div>
-          );
-        })}
-      </div>
+          ))}
+
+        </div>
+      </section>
+
+      {/* Visual Comparison Divider */}
+      <section className="max-w-4xl mx-auto w-full px-4 text-center my-10 relative">
+        <div className="absolute inset-0 flex items-center" aria-hidden="true">
+          <div className="w-full border-t border-black/5"></div>
+        </div>
+        <div className="relative flex justify-center">
+          <span className="bg-[#FAF9F5] px-6 text-xs font-bold text-[#667085] uppercase tracking-widest leading-none">
+            Different teaching styles. Same engineering quality.
+          </span>
+        </div>
+      </section>
+
+      {/* Comparison Section */}
+      <section className="px-4 md:px-8 max-w-3xl mx-auto w-full mb-16">
+        <div className="bento-card p-6 md:p-8 rounded-[28px] space-y-6">
+          <div className="text-center md:text-left">
+            <span className="text-[9px] font-bold text-[#6D5DF6] uppercase tracking-widest">Decision Matrix</span>
+            <h3 className="text-xl font-extrabold text-[#111827] mt-1">Which mentor fits you?</h3>
+          </div>
+
+          <div className="overflow-x-auto border border-black/5 rounded-2xl bg-[#FAF9F5]">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-black/5 bg-black/[0.01]">
+                  <th className="px-5 py-3.5 text-xs font-bold text-[#667085] uppercase tracking-wider">You want to...</th>
+                  <th className="px-5 py-3.5 text-xs font-bold text-[#667085] uppercase tracking-wider">Recommended Mentor</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-black/5">
+                {COMPARISON_ROWS.map((row, idx) => (
+                  <tr key={idx} className="hover:bg-white/40 transition-colors">
+                    <td className="px-5 py-3.5 text-xs font-semibold text-[#111827]">{row.action}</td>
+                    <td className="px-5 py-3.5 text-xs font-bold text-[#6D5DF6]">{row.mentor}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      {/* Teaching Response Preview Section */}
+      <section className="px-4 md:px-8 max-w-3xl mx-auto w-full mb-16">
+        <div className="bento-card p-6 md:p-8 rounded-[28px] space-y-6">
+          <div className="text-center md:text-left">
+            <span className="text-[9px] font-bold text-[#06B6D4] uppercase tracking-widest">Live Preview</span>
+            <h3 className="text-xl font-extrabold text-[#111827] mt-1">Teaching Response Preview</h3>
+            <p className="text-xs text-[#667085] font-semibold mt-1">See how each mentor responds to the same question.</p>
+          </div>
+
+          <div className="border border-black/5 rounded-2xl p-5 bg-[#FAF9F5] space-y-4">
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded bg-black/5 text-[9px] font-bold text-[#667085] uppercase">Question</span>
+              <p className="text-xs font-bold text-[#111827]">How should I learn backend development?</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+              <div className="bg-white border border-black/5 p-4 rounded-xl space-y-2">
+                <div className="flex items-center gap-2">
+                  <img src="/hiteshchoudhary.png" alt="Hitesh" className="w-6 h-6 rounded-full object-cover border" />
+                  <span className="text-xs font-bold text-[#111827]">Hitesh</span>
+                </div>
+                <p className="text-xs font-medium text-[#4B5563] leading-relaxed">
+                  "Build APIs from day one. Theory alone won't make you an engineer."
+                </p>
+              </div>
+
+              <div className="bg-white border border-black/5 p-4 rounded-xl space-y-2">
+                <div className="flex items-center gap-2">
+                  <img src="/piyushgarg.png" alt="Piyush" className="w-6 h-6 rounded-full object-cover border" />
+                  <span className="text-xs font-bold text-[#111827]">Piyush</span>
+                </div>
+                <p className="text-xs font-medium text-[#4B5563] leading-relaxed">
+                  "Before writing APIs, understand HTTP, databases, and architecture."
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Section with icons and no percentages */}
+      <section className="px-4 md:px-8 max-w-3xl mx-auto w-full mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {MENTORS.map((mentor) => (
+            <div key={mentor.key} className="bento-card p-6 rounded-2xl space-y-4">
+              <div className="flex items-center gap-2.5">
+                <img src={mentor.avatar} alt={mentor.name} className="w-7 h-7 rounded-full object-cover" />
+                <h4 className="text-xs font-bold text-[#111827]">{mentor.name.split(" ")[0]} Highlights</h4>
+              </div>
+              <ul className="space-y-2">
+                {mentor.stats.map((stat, i) => (
+                  <li key={i} className="flex items-center gap-2 text-xs font-semibold text-[#4B5563]">
+                    <FiCheck className="text-green-600 flex-shrink-0" strokeWidth={3} />
+                    <span>{stat}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Social Proof Subtle Node */}
+      <section className="max-w-xl mx-auto text-center px-4 mb-16 space-y-1">
+        <p className="text-[10px] font-bold text-[#667085] uppercase tracking-wider">
+          Thousands of engineering questions answered.
+        </p>
+        <p className="text-[9px] font-semibold text-[#667085] uppercase tracking-widest">
+          Powered by GPT, Gemini, Claude & Groq. Built for developers.
+        </p>
+      </section>
+
+      {/* Bottom CTA Card */}
+      <section className="px-4 md:px-8 max-w-3xl mx-auto w-full mb-12">
+        <div className="relative rounded-[32px] overflow-hidden bg-white border border-black/5 p-8 md:p-12 text-center shadow-sm">
+          <div className="max-w-xl mx-auto space-y-5">
+            <span className="inline-block bg-[#6D5DF6]/10 border border-[#6D5DF6]/20 text-[#6D5DF6] font-bold text-[10px] uppercase tracking-widest px-4 py-1.5 rounded-full shadow-sm">
+              Still not sure?
+            </span>
+            <h2 className="text-3xl font-extrabold text-[#111827] tracking-tight">
+              Try both mentors.
+            </h2>
+            <p className="text-xs font-semibold text-[#4B5563] leading-relaxed max-w-sm mx-auto">
+              Every conversation is independent. Switch anytime and discover which teaching style helps you learn faster.
+            </p>
+
+            <div className="flex flex-wrap justify-center gap-3 pt-2">
+              <button
+                onClick={() => handleMentorSelect("hiteshchoudhary", "Hitesh Choudhary", "Founder • Chai Code", "/hiteshchoudhary.png", "Build projects, not tutorials.")}
+                className="px-6 py-3.5 rounded-xl text-white font-bold text-xs uppercase tracking-wider transition-all"
+                style={{ background: "#6D5DF6" }}
+              >
+                Talk to Hitesh
+              </button>
+              <button
+                onClick={() => handleMentorSelect("piyushgarg", "Piyush Garg", "Founder • Teachyst", "/piyushgarg.png", "Understand systems before writing code.")}
+                className="px-6 py-3.5 rounded-xl text-white font-bold text-xs uppercase tracking-wider transition-all"
+                style={{ background: "#06B6D4" }}
+              >
+                Talk to Piyush
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer disclaimer */}
+      <footer className="mt-auto py-6 border-t border-black/5 text-center px-4 bg-white/40">
+        <p className="text-[10px] text-[#667085] font-semibold tracking-wide">
+          All conversations are AI-generated. Personas are simulated for educational purposes only.
+        </p>
+      </footer>
+
     </div>
   );
 }

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Menu, X, Github, ExternalLink } from "lucide-react";
+import ThemeToggle from "@/component/ThemeToggle";
 
 const NAV_LINKS = [
   { label: "Features", href: "/#features" },
@@ -39,114 +40,109 @@ const Navbar: React.FC = () => {
     <>
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled ? "py-2" : "py-3"
+          scrolled ? "py-3" : "py-5"
         }`}
       >
         <div className="mx-auto px-4 md:px-6 max-w-7xl">
           <div
-            className={`glass border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.85)] px-5 py-2.5 flex items-center justify-between transition-all duration-300 ${
-              scrolled ? "shadow-[5px_5px_0px_0px_rgba(0,0,0,0.95)]" : ""
+            className={`transition-all duration-300 rounded-2xl border border-black/5 bg-white/70 backdrop-blur-md px-6 py-3 flex items-center justify-between ${
+              scrolled 
+                ? "shadow-[0_8px_30px_rgba(0,0,0,0.03)] border-black/10 bg-white/80" 
+                : ""
             }`}
           >
-            {/* ── Logo ── */}
+            {/* Logo */}
             <button
               onClick={() => router.push("/")}
-              className="flex items-center gap-2.5 group flex-shrink-0"
+              className="flex items-center gap-2 group flex-shrink-0"
             >
               <img
                 src="/tarkai-logo-navbar.png"
                 alt="Tark AI"
-                className="h-10 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.04]"
+                className="h-8 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
               />
-              <div className="hidden sm:flex flex-col border-l-2 border-black/15 pl-2.5">
-                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-tight">
-                  Reason. Learn. Build.
+              <div className="hidden sm:flex flex-col border-l border-black/10 pl-2.5">
+                <span className="text-[10px] font-bold text-[#4B5563] uppercase tracking-widest leading-none">
+                  Mentor Platform
                 </span>
               </div>
             </button>
 
-            {/* ── Desktop Nav Links ── */}
-            <nav className="hidden md:flex items-center gap-7">
+            {/* Navigation Links */}
+            <nav className="hidden md:flex items-center gap-8">
               {NAV_LINKS.map(({ label, href }) => (
                 <button
                   key={label}
                   onClick={() => handleNav(href)}
-                  className="nav-link uppercase tracking-wider text-xs font-black text-black/80 hover:text-black"
+                  className="text-xs font-semibold text-[#4B5563] hover:text-[#111827] uppercase tracking-wider transition-colors"
                 >
                   {label}
                 </button>
               ))}
 
-              {/* GitHub */}
               <a
                 href="https://github.com/heelpatel01"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="nav-link flex items-center gap-1 uppercase tracking-wider text-xs font-black text-black/80 hover:text-black"
+                className="text-xs font-semibold text-[#4B5563] hover:text-[#111827] flex items-center gap-1.5 uppercase tracking-wider transition-colors"
               >
                 <Github className="w-3.5 h-3.5" />
                 GitHub
               </a>
             </nav>
 
-            {/* ── Desktop CTA ── */}
-            <div className="hidden md:flex items-center gap-3">
+            {/* Desktop CTA */}
+            <div className="hidden md:flex items-center gap-4">
+              <ThemeToggle />
               <button
                 onClick={() => router.push("/persona")}
                 className="
-                  neo-btn
-                  relative group overflow-hidden
-                  bg-yellow-400 text-black
-                  font-black text-xs uppercase tracking-wider
-                  px-5 py-2.5
-                  border-2 border-black
-                  shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
-                  flex items-center gap-1.5
+                  btn-primary
+                  font-bold text-xs uppercase tracking-wider
+                  px-6 py-2.5 flex items-center gap-1
                 "
               >
-                <span
-                  aria-hidden
-                  className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-500"
-                />
-                <span className="relative flex items-center gap-1.5">
-                  Talk to a Mentor
-                  <span className="transition-transform duration-200 group-hover:translate-x-0.5">→</span>
-                </span>
+                <span>Talk to a Mentor</span>
+                <span>→</span>
               </button>
             </div>
 
-            {/* ── Mobile Hamburger ── */}
+            {/* Mobile Hamburger */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden w-9 h-9 border-2 border-black flex items-center justify-center hover:bg-yellow-100 transition-colors"
+              className="md:hidden w-8 h-8 rounded-xl border border-black/5 bg-white/50 backdrop-blur-md flex items-center justify-center hover:bg-white/80 transition-colors"
               aria-label="Toggle menu"
             >
-              {mobileOpen
-                ? <X className="w-4 h-4" strokeWidth={3} />
-                : <Menu className="w-4 h-4" strokeWidth={3} />
-              }
+              {mobileOpen ? (
+                <X className="w-4 h-4 text-[#111827]" strokeWidth={2.5} />
+              ) : (
+                <Menu className="w-4 h-4 text-[#111827]" strokeWidth={2.5} />
+              )}
             </button>
           </div>
         </div>
       </header>
 
-      {/* ── Mobile Drawer ── */}
+      {/* Mobile Drawer */}
       {mobileOpen && (
         <div className="md:hidden fixed inset-0 z-40 flex flex-col">
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-[#FAF9F5]/40 backdrop-blur-md"
             onClick={() => setMobileOpen(false)}
           />
           {/* Panel */}
-          <div className="relative mt-[72px] mx-4 glass border-2 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] z-50 animate-slide-up-fade">
-            <nav className="flex flex-col">
+          <div className="relative mt-24 mx-4 border border-black/5 bg-white/95 backdrop-blur-xl dark:bg-black/90 rounded-2xl shadow-xl p-6 z-50 animate-message-appear">
+            <div className="flex justify-between items-center px-4 py-3 mb-2 border-b border-black/5 dark:border-white/5">
+              <span className="text-[10px] font-bold text-[#667085] uppercase tracking-wider">Appearance</span>
+              <ThemeToggle />
+            </div>
+            <nav className="flex flex-col gap-1">
               {NAV_LINKS.map(({ label, href }, i) => (
                 <button
                   key={label}
                   onClick={() => handleNav(href)}
-                  className="text-left px-5 py-4 font-black uppercase text-sm tracking-wider text-black border-b-2 border-black/10 hover:bg-yellow-50 transition-colors"
-                  style={{ animationDelay: `${i * 0.05}s` }}
+                  className="text-left px-4 py-3 font-semibold uppercase text-xs tracking-widest text-[#111827] hover:bg-black/5 rounded-xl transition-colors"
                 >
                   {label}
                 </button>
@@ -155,16 +151,19 @@ const Navbar: React.FC = () => {
                 href="https://github.com/heelpatel01"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-5 py-4 font-black uppercase text-sm tracking-wider text-black border-b-2 border-black/10 hover:bg-yellow-50 transition-colors"
+                className="flex items-center gap-2 px-4 py-3 font-semibold uppercase text-xs tracking-widest text-[#111827] hover:bg-black/5 rounded-xl transition-colors"
               >
                 <Github className="w-4 h-4" />
                 GitHub
-                <ExternalLink className="w-3 h-3 ml-auto opacity-40" />
+                <ExternalLink className="w-3.5 h-3.5 ml-auto opacity-40" />
               </a>
-              <div className="p-4">
+              <div className="pt-4">
                 <button
-                  onClick={() => { setMobileOpen(false); router.push("/persona"); }}
-                  className="w-full neo-btn bg-yellow-400 text-black font-black text-sm uppercase tracking-wider py-3 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center gap-2"
+                  onClick={() => {
+                    setMobileOpen(false);
+                    router.push("/persona");
+                  }}
+                  className="w-full btn-primary font-bold text-xs uppercase tracking-wider py-3.5 flex items-center justify-center gap-2"
                 >
                   Talk to a Mentor →
                 </button>

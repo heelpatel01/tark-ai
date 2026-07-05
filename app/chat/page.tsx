@@ -13,6 +13,7 @@ import {
   FiThumbsDown,
   FiChevronDown,
   FiRepeat,
+  FiPaperclip,
 } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
@@ -21,6 +22,7 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import type { Components } from "react-markdown";
 import { ChatSidebar } from "@/component/ChatSidebar";
+import ThemeToggle from "@/component/ThemeToggle";
 
 interface Message {
   id: string;
@@ -50,13 +52,18 @@ interface Conversation {
 
 // ── Per-persona content ─────────────────────────────────────────────
 const PERSONA_GREETINGS: Record<string, string> = {
-  hiteshchoudhary: "👋 Haanji!",
-  piyushgarg: "Hey there! 👋",
+  hiteshchoudhary: "Haanji!",
+  piyushgarg: "Hey there!",
 };
 
 const PERSONA_TAGLINES: Record<string, string> = {
   hiteshchoudhary: "Ask me anything about coding, career, or tech.",
   piyushgarg: "Let's talk GenAI, backend, or startup building.",
+};
+
+const DYNAMIC_GREETING: Record<string, string> = {
+  hiteshchoudhary: "Hi, I'm Hitesh. Let's build something practical today.",
+  piyushgarg: "Hi, I'm Piyush. Let's understand systems before coding today.",
 };
 
 const PERSONA_PLACEHOLDERS: Record<string, string> = {
@@ -88,7 +95,11 @@ const PERSONA_PROMPTS: Record<string, string[]> = {
   ],
 };
 
-// ── Available personas for the switcher ────────────────────────────
+const PERSONA_ACCENT: Record<string, string> = {
+  hiteshchoudhary: "#6D5DF6",
+  piyushgarg: "#06B6D4",
+};
+
 const SWITCH_PERSONAS = [
   {
     key: "hiteshchoudhary",
@@ -96,7 +107,7 @@ const SWITCH_PERSONAS = [
     role: "Founder, Chai Code · Full-Stack & Career Mentor",
     image: "/hiteshchoudhary.png",
     accent: "#6D5DF6",
-    badge: "☕ Chai Code",
+    badge: "Chai Code",
   },
   {
     key: "piyushgarg",
@@ -104,10 +115,9 @@ const SWITCH_PERSONAS = [
     role: "Founder, Teachyst · AI & Backend Engineering Mentor",
     image: "/piyushgarg.png",
     accent: "#06B6D4",
-    badge: "⚡ GenAI",
+    badge: "GenAI",
   },
 ];
-
 
 const DEFAULT_PROMPTS = [
   "How should I start learning programming?",
@@ -140,16 +150,17 @@ const CodeBlockWithCopy: React.FC<{
   };
 
   return (
-    <div className="relative group w-full my-3 overflow-hidden border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-      <div className="flex items-center justify-between bg-[#1e1e1e] border-b-2 border-black px-3 py-2">
-        <span className="text-cyan-400 font-mono text-xs font-bold uppercase">
+    <div className="relative group w-full my-4 overflow-hidden rounded-2xl border border-[#1e1e1e]/20 shadow-[0_4px_16px_rgba(0,0,0,0.02)]">
+      <div className="flex items-center justify-between bg-[#1e1e1e] px-4 py-2">
+        <span className="text-cyan-400 font-mono text-[10px] font-bold uppercase tracking-wider">
           {languageMap[language.toLowerCase()] || language.toUpperCase()}
         </span>
         <button
           onClick={copyToClipboard}
-          className="p-1.5 px-2.5 bg-cyan-400 hover:bg-cyan-300 text-black font-bold border-2 border-black transition-all flex items-center gap-1.5 text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]"
+          className="p-1 px-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all flex items-center gap-1 text-[10px] font-bold"
         >
-          {copied ? <><FiCheck size={13} strokeWidth={3} /><span>Copied!</span></> : <><FiCopy size={13} strokeWidth={3} /><span>Copy</span></>}
+          {copied ? <FiCheck size={11} strokeWidth={3} /> : <FiCopy size={11} strokeWidth={2.5} />}
+          <span>{copied ? "Copied" : "Copy"}</span>
         </button>
       </div>
       <div className="w-full overflow-x-auto bg-[#1e1e1e]">
@@ -159,9 +170,9 @@ const CodeBlockWithCopy: React.FC<{
           PreTag="div"
           showLineNumbers
           className="!bg-transparent !p-0 !m-0"
-          customStyle={{ margin: 0, padding: "1rem", background: "transparent", fontSize: "0.8rem", lineHeight: "1.5", minWidth: "100%", overflowX: "auto" }}
-          codeTagProps={{ style: { fontSize: "0.8rem", lineHeight: "1.5", display: "block" } }}
-          lineNumberStyle={{ minWidth: "3em", paddingRight: "1em", color: "#555", userSelect: "none" }}
+          customStyle={{ margin: 0, padding: "1.2rem", background: "transparent", fontSize: "0.75rem", lineHeight: "1.6", minWidth: "100%", overflowX: "auto" }}
+          codeTagProps={{ style: { fontSize: "0.75rem", lineHeight: "1.6", display: "block" } }}
+          lineNumberStyle={{ minWidth: "2.5em", paddingRight: "1em", color: "#555", userSelect: "none" }}
         >
           {code}
         </SyntaxHighlighter>
@@ -186,15 +197,16 @@ const TableWithCopy: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   };
 
   return (
-    <div className="relative group w-full my-4 overflow-hidden border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col bg-white">
-      <div className="flex items-center justify-between bg-yellow-200 border-b-4 border-black px-3 py-2">
-        <span className="text-black font-black text-xs uppercase">Data Table</span>
-        <button onClick={copyToClipboard} className="p-1.5 px-2.5 bg-white hover:bg-yellow-100 text-black font-bold border-2 border-black transition-all flex items-center gap-1.5 text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]">
-          {copied ? <><FiCheck size={13} strokeWidth={3} /><span>Copied!</span></> : <><FiCopy size={13} strokeWidth={3} /><span>Copy</span></>}
+    <div className="relative group w-full my-4 overflow-hidden rounded-2xl border border-black/5 flex flex-col bg-white shadow-sm">
+      <div className="flex items-center justify-between bg-black/[0.02] px-4 py-2 border-b border-black/5">
+        <span className="text-[#111111] font-bold text-[10px] uppercase tracking-wider">Data Table</span>
+        <button onClick={copyToClipboard} className="p-1 px-3 bg-white hover:bg-[#F8FAFC] text-[#111111] border border-black/5 rounded-full transition-all flex items-center gap-1 text-[10px] font-bold shadow-sm">
+          {copied ? <FiCheck size={11} strokeWidth={3} /> : <FiCopy size={11} strokeWidth={2.5} />}
+          <span>{copied ? "Copied" : "Copy"}</span>
         </button>
       </div>
       <div className="w-full overflow-x-auto">
-        <table ref={tableRef} className="w-full text-left border-collapse min-w-max">{children}</table>
+        <table ref={tableRef} className="w-full text-left border-collapse min-w-max text-xs">{children}</table>
       </div>
     </div>
   );
@@ -202,7 +214,7 @@ const TableWithCopy: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
 // ── Markdown renderer ───────────────────────────────────────────────
 const MarkdownMessage: React.FC<{ content: string; isUser: boolean }> = ({ content, isUser }) => {
-  if (isUser) return <div className="whitespace-pre-wrap break-words font-semibold">{content}</div>;
+  if (isUser) return <div className="whitespace-pre-wrap break-words font-semibold text-xs sm:text-sm">{content}</div>;
 
   const components: Components = {
     code({ node, inline, className, children, ...props }: any) {
@@ -213,24 +225,24 @@ const MarkdownMessage: React.FC<{ content: string; isUser: boolean }> = ({ conte
       if (!inline && (hasLanguage || isMultiLine)) {
         return <div className="w-full max-w-full overflow-hidden"><CodeBlockWithCopy code={codeString} language={hasLanguage ? match[1] : "text"} /></div>;
       }
-      return <code className="bg-yellow-200 px-1.5 py-0.5 border-2 border-black font-mono text-xs font-bold break-all" {...props}>{children}</code>;
+      return <code className="bg-[#6D5DF6]/10 text-[#6D5DF6] px-1.5 py-0.5 rounded font-mono text-xs font-semibold break-all" {...props}>{children}</code>;
     },
-    h1: ({ children }) => <h1 className="text-xl font-black text-black mt-4 mb-2 uppercase">{children}</h1>,
-    h2: ({ children }) => <h2 className="text-lg font-black text-black mt-4 mb-2 uppercase">{children}</h2>,
-    h3: ({ children }) => <h3 className="text-base font-black text-black mt-3 mb-2 uppercase">{children}</h3>,
-    ul: ({ children }) => <ul className="list-disc list-inside space-y-1 my-2 font-bold">{children}</ul>,
-    ol: ({ children }) => <ol className="list-decimal list-inside space-y-1 my-2 font-bold">{children}</ol>,
-    li: ({ children }) => <li className="text-black font-medium">{children}</li>,
-    blockquote: ({ children }) => <blockquote className="border-l-4 border-black pl-4 font-bold italic text-black my-2 bg-pink-100 py-2">{children}</blockquote>,
-    a: ({ children, href }) => <a href={href} target="_blank" rel="noopener noreferrer" className="text-violet-700 underline decoration-2 decoration-violet-300 hover:bg-violet-50 transition-colors font-bold">{children}</a>,
-    p: ({ children }) => <p className="mb-2 font-medium text-black leading-relaxed">{children}</p>,
-    strong: ({ children }) => <strong className="font-black text-black">{children}</strong>,
+    h1: ({ children }) => <h1 className="text-lg font-bold text-[#111111] mt-4 mb-2 uppercase tracking-wide">{children}</h1>,
+    h2: ({ children }) => <h2 className="text-base font-bold text-[#111111] mt-4 mb-2 uppercase tracking-wide">{children}</h2>,
+    h3: ({ children }) => <h3 className="text-sm font-bold text-[#111111] mt-3 mb-2 uppercase tracking-wide">{children}</h3>,
+    ul: ({ children }) => <ul className="list-disc list-inside space-y-1.5 my-2.5 font-medium">{children}</ul>,
+    ol: ({ children }) => <ol className="list-decimal list-inside space-y-1.5 my-2.5 font-medium">{children}</ol>,
+    li: ({ children }) => <li className="text-[#111111] font-medium leading-relaxed">{children}</li>,
+    blockquote: ({ children }) => <blockquote className="border-l-4 border-[#6D5DF6]/40 pl-4 font-semibold italic text-[#667085] my-3 bg-[#6D5DF6]/5 py-2.5 rounded-r-xl">{children}</blockquote>,
+    a: ({ children, href }) => <a href={href} target="_blank" rel="noopener noreferrer" className="text-[#6D5DF6] font-bold underline hover:opacity-85 transition-opacity">{children}</a>,
+    p: ({ children }) => <p className="mb-2.5 font-medium text-[#111111] leading-relaxed">{children}</p>,
+    strong: ({ children }) => <strong className="font-bold text-[#111111]">{children}</strong>,
     table: ({ children }) => <TableWithCopy>{children}</TableWithCopy>,
-    thead: ({ children }) => <thead className="border-b-4 border-black">{children}</thead>,
+    thead: ({ children }) => <thead className="border-b border-black/5 bg-black/[0.01]">{children}</thead>,
     tbody: ({ children }) => <tbody className="bg-white">{children}</tbody>,
-    tr: ({ children }) => <tr className="border-b-2 border-black last:border-0 hover:bg-yellow-100 transition-colors">{children}</tr>,
-    th: ({ children }) => <th className="p-3 font-black text-black uppercase border-r-2 border-black last:border-r-0 whitespace-nowrap">{children}</th>,
-    td: ({ children }) => <td className="p-3 font-medium text-black border-r-2 border-black last:border-r-0">{children}</td>,
+    tr: ({ children }) => <tr className="border-b border-black/5 last:border-0 hover:bg-[#F8FAFC] transition-colors">{children}</tr>,
+    th: ({ children }) => <th className="p-3 font-bold text-[#111111] uppercase tracking-wider whitespace-nowrap">{children}</th>,
+    td: ({ children }) => <td className="p-3 font-medium text-[#667085] border-r border-black/5 last:border-r-0">{children}</td>,
   };
 
   return (
@@ -360,7 +372,6 @@ const ChatApp: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Always use gemini — model is an implementation detail
       const response = await fetch("/api/gemini", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -444,7 +455,6 @@ const ChatApp: React.FC = () => {
     } catch { /* ignore */ }
   };
 
-  // Resolved persona-specific content
   const personaKey = selectedPersona?.key ?? "";
   const greeting = PERSONA_GREETINGS[personaKey] ?? "Hello! 👋";
   const tagline = PERSONA_TAGLINES[personaKey] ?? "Ask me anything.";
@@ -454,7 +464,11 @@ const ChatApp: React.FC = () => {
   const personaFirstName = selectedPersona?.name?.split(" ")[0] ?? "Tark AI";
 
   return (
-    <div className="flex h-screen bg-white font-sans overflow-hidden">
+    <div className="flex h-screen bg-transparent font-sans overflow-hidden relative">
+      
+      {/* Background elements */}
+      <div className="saas-grid" />
+      <div className="hero-glow pointer-events-none" />
 
       {/* Sidebar */}
       <ChatSidebar
@@ -472,370 +486,335 @@ const ChatApp: React.FC = () => {
       />
 
       {/* Main Area */}
-      <div className="flex-1 flex flex-col min-h-0 min-w-0">
+      <div className="flex-1 flex flex-col min-h-0 min-w-0 z-10">
 
-        {/* ── Chat Header ── */}
-        <header className="flex-shrink-0 bg-white border-b-2 border-black px-4 py-3 flex items-center gap-3 z-20">
+        {/* Chat Header */}
+        <header className="flex-shrink-0 bg-white/60 dark:bg-black/20 backdrop-blur-xl border-b border-black/5 px-6 py-4 flex items-center justify-between z-20 shadow-[0_2px_12px_rgba(0,0,0,0.01)]">
           {/* Sidebar toggle */}
           <button
             onClick={toggleSidebar}
-            className="p-2 border-2 border-black text-black hover:bg-yellow-100 transition-colors flex-shrink-0"
+            className="w-8 h-8 rounded-full border border-black/10 bg-white/40 flex items-center justify-center hover:bg-white/70 transition-all flex-shrink-0 shadow-sm"
             aria-label="Toggle sidebar"
           >
             {isMobile
-              ? (mobileSidebarOpen ? <FiX size={18} strokeWidth={3} /> : <FiMenu size={18} strokeWidth={3} />)
-              : (sidebarOpen ? <FiChevronLeft size={18} strokeWidth={3} /> : <FiChevronRight size={18} strokeWidth={3} />)
+              ? (mobileSidebarOpen ? <FiX size={15} strokeWidth={3} /> : <FiMenu size={15} strokeWidth={3} />)
+              : (sidebarOpen ? <FiChevronLeft size={16} strokeWidth={3} /> : <FiChevronRight size={16} strokeWidth={3} />)
             }
           </button>
 
           {/* Persona info + Switch dropdown */}
           {selectedPersona && (
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              <div className="relative flex-shrink-0">
-                <img
-                  src={selectedPersona.image}
-                  alt={selectedPersona.name}
-                  className="w-9 h-9 object-cover border-2 border-black rounded-full"
-                />
-                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 border-2 border-white rounded-full" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <h1 className="font-black text-black text-base leading-none truncate">{selectedPersona.name}</h1>
-                  <span className="hidden sm:flex items-center gap-1 text-[9px] font-bold text-green-700 bg-green-100 border border-green-300 px-1.5 py-0.5 rounded-full flex-shrink-0">
-                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                    Active
-                  </span>
-                </div>
-                <p className="text-[10px] text-gray-400 font-medium mt-0.5 hidden sm:block">Inspired by public talks and videos</p>
-              </div>
-
-              {/* ── Switch Mentor Dropdown ── */}
-              <div className="relative flex-shrink-0" ref={switcherRef}>
-                <button
-                  onClick={() => setSwitcherOpen(o => !o)}
-                  className={`flex items-center gap-1.5 text-xs font-black uppercase tracking-wider px-3 py-2 border-2 border-black transition-all duration-150
-                    ${switcherOpen
-                      ? "bg-black text-white shadow-none translate-x-[2px] translate-y-[2px]"
-                      : "bg-white text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px]"
-                    }`}
-                  aria-label="Switch mentor"
-                >
-                  <FiRepeat size={12} strokeWidth={3} />
-                  <span className="hidden sm:inline">Switch</span>
-                  <FiChevronDown size={11} strokeWidth={3} className={`transition-transform duration-200 ${switcherOpen ? "rotate-180" : ""}`} />
-                </button>
-
-                {/* Dropdown popup */}
-                {switcherOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-72 bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] z-50 animate-slide-up-fade">
-                    {/* Header */}
-                    <div className="bg-black px-4 py-2.5 flex items-center justify-between">
-                      <span className="text-white font-black text-xs uppercase tracking-widest">Switch Mentor</span>
-                      <button
-                        onClick={() => setSwitcherOpen(false)}
-                        className="text-white/60 hover:text-white transition-colors"
-                      >
-                        <FiX size={14} strokeWidth={3} />
-                      </button>
-                    </div>
-
-                    {/* Persona options */}
-                    <div className="p-2 space-y-2">
-                      {SWITCH_PERSONAS.map((p) => {
-                        const isActive = selectedPersona?.key === p.key;
-                        return (
-                          <div
-                            key={p.key}
-                            className={`flex items-center gap-3 p-3 border-2 transition-all duration-150 ${
-                              isActive
-                                ? "border-black bg-gray-50 cursor-default"
-                                : "border-transparent hover:border-black hover:bg-yellow-50 cursor-pointer"
-                            }`}
-                            onClick={() => !isActive && handleSwitchPersona(p)}
-                          >
-                            {/* Avatar */}
-                            <div className="relative flex-shrink-0">
-                              <img
-                                src={p.image}
-                                alt={p.name}
-                                className="w-12 h-12 object-cover border-2 border-black rounded-full"
-                              />
-                              {isActive && (
-                                <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-400 border-2 border-white rounded-full flex items-center justify-center">
-                                  <FiCheck size={8} strokeWidth={4} className="text-white" />
-                                </span>
-                              )}
-                            </div>
-
-                            {/* Info */}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-1.5 mb-0.5">
-                                <p className="font-black text-black text-sm truncate">{p.name}</p>
-                                {isActive && (
-                                  <span className="text-[9px] font-black text-green-700 bg-green-100 border border-green-300 px-1.5 py-0.5 flex-shrink-0">Active</span>
-                                )}
-                              </div>
-                              <p className="text-[10px] text-gray-400 font-medium truncate">{p.role}</p>
-                              <span
-                                className="inline-block text-[9px] font-black uppercase tracking-wider mt-1.5 px-2 py-0.5 border border-current"
-                                style={{ color: p.accent }}
-                              >
-                                {p.badge}
-                              </span>
-                            </div>
-
-                            {/* Switch button */}
-                            {!isActive && (
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleSwitchPersona(p); }}
-                                className="flex-shrink-0 text-[10px] font-black uppercase tracking-wider text-white px-3 py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
-                                style={{ background: p.accent }}
-                              >
-                                Switch
-                              </button>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Footer */}
-                    <div className="border-t-2 border-black px-4 py-2 bg-gray-50">
-                      <p className="text-[9px] text-gray-400 font-medium text-center">
-                        Switching clears the current conversation
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Right slot — intentionally empty for clean look */}
-          <div className="flex-shrink-0" />
-        </header>
-
-        {/* ── Message Area ── */}
-        <div className="flex-1 overflow-y-auto min-h-0">
-          <div className="max-w-2xl mx-auto px-4 py-6 space-y-6 w-full">
-
-            {/* Empty state */}
-            {messages.length === 0 && selectedPersona && (
-              <div className="flex flex-col items-center text-center pt-4 pb-8 animate-fade-up">
-                {/* Large Avatar */}
-                <div className="relative mb-5">
+            <div className="flex items-center gap-3 flex-1 min-w-0 justify-between">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="relative flex-shrink-0">
                   <img
                     src={selectedPersona.image}
                     alt={selectedPersona.name}
-                    className="w-24 h-24 object-cover border-4 border-black rounded-full shadow-[6px_6px_0px_0px_rgba(0,0,0,0.9)]"
+                    className="w-9 h-9 object-cover border border-white shadow-md rounded-full"
                   />
-                  <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 border-3 border-white rounded-full" style={{ borderWidth: 3, borderColor: "white" }} />
+                  <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border border-white rounded-full" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h1 className="font-bold text-sm text-[#111111] leading-none truncate">{selectedPersona.name}</h1>
+                    <span className="hidden sm:flex items-center gap-1 text-[8px] font-bold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full flex-shrink-0">
+                      <span className="w-1 h-1 bg-green-500 rounded-full" />
+                      Active
+                    </span>
+                  </div>
+                  <p className="text-[9px] text-[#667085] font-semibold mt-0.5 hidden sm:block">Inspired by public lectures</p>
+                </div>
+              </div>
+
+              {/* Switch Mentor Dropdown & Theme Toggle */}
+              <div className="flex items-center gap-2.5 flex-shrink-0">
+                <ThemeToggle />
+                <div className="relative" ref={switcherRef}>
+                  <button
+                    onClick={() => setSwitcherOpen(o => !o)}
+                    className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-3.5 py-2 border border-black/5 bg-white rounded-full shadow-sm hover:bg-[#F8FAFC] transition-all"
+                    aria-label="Explore mentor"
+                  >
+                    <FiRepeat size={11} strokeWidth={3} />
+                    <span className="hidden sm:inline">Switch</span>
+                    <FiChevronDown size={11} strokeWidth={3} className={`transition-transform duration-200 ${switcherOpen ? "rotate-180" : ""}`} />
+                  </button>
+
+                  {/* Dropdown popup */}
+                  {switcherOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-72 bg-white/95 border border-white/60 shadow-xl backdrop-blur-2xl rounded-2xl overflow-hidden z-50 animate-message-appear">
+                      <div className="bg-black/5 border-b border-black/5 px-4 py-3 flex items-center justify-between">
+                        <span className="text-[#111111] font-bold text-[10px] uppercase tracking-widest">Switch Mentor</span>
+                        <button
+                          onClick={() => setSwitcherOpen(false)}
+                          className="text-[#667085] hover:text-[#111111] transition-colors"
+                        >
+                          <FiX size={13} strokeWidth={3} />
+                        </button>
+                      </div>
+
+                      <div className="p-2 space-y-1">
+                        {SWITCH_PERSONAS.map((p) => {
+                          const isActive = selectedPersona?.key === p.key;
+                          return (
+                            <div
+                              key={p.key}
+                              className={`flex items-center gap-3 p-2.5 rounded-xl border transition-all duration-150 ${isActive
+                                ? "border-[#6D5DF6]/20 bg-[#6D5DF6]/5 cursor-default"
+                                : "border-transparent hover:bg-black/[0.02] cursor-pointer"
+                                }`}
+                              onClick={() => !isActive && handleSwitchPersona(p)}
+                            >
+                              <div className="relative flex-shrink-0">
+                                <img
+                                  src={p.image}
+                                  alt={p.name}
+                                  className="w-10 h-10 object-cover border border-white rounded-full"
+                                />
+                                {isActive && (
+                                  <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border border-white rounded-full flex items-center justify-center">
+                                    <FiCheck size={7} strokeWidth={4} className="text-white" />
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className="flex-1 min-w-0">
+                                <p className="font-bold text-xs text-[#111111] truncate">{p.name}</p>
+                                <p className="text-[9px] text-[#667085] font-semibold truncate mt-0.5">{p.role.split("·")[0]}</p>
+                              </div>
+
+                              {!isActive && (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleSwitchPersona(p); }}
+                                  className="flex-shrink-0 text-[8px] font-bold uppercase tracking-wider text-white px-2.5 py-1.5 rounded-full"
+                                  style={{ background: p.accent }}
+                                >
+                                  Switch
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </header>
+
+        {/* Message Area */}
+        <div className="flex-1 overflow-y-auto min-h-0 bg-transparent">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6 w-full">
+
+            {/* Empty State */}
+            {messages.length === 0 && selectedPersona && (
+              <div className="flex flex-col items-center text-center pt-16 pb-12 animate-message-appear max-w-xl mx-auto space-y-6">
+                <div className="relative">
+                  <img
+                    src={selectedPersona.image}
+                    alt={selectedPersona.name}
+                    className="w-16 h-16 object-cover border border-white dark:border-white/10 rounded-full shadow-md"
+                  />
+                  <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white dark:border-white/10 rounded-full" />
                 </div>
 
-                <h2 className="text-3xl md:text-4xl font-black text-black mb-2">{greeting}</h2>
-                <p className="text-gray-500 font-medium text-base mb-6 max-w-sm">{tagline}</p>
+                <div className="space-y-1">
+                  <h2 className="text-xl font-extrabold text-[#111111]">{selectedPersona.name}</h2>
+                  <p className="text-xs text-[#667085] font-semibold">
+                    {DYNAMIC_GREETING[selectedPersona.key] || "Let's learn something new today."}
+                  </p>
+                </div>
 
-                {/* Topic pills */}
-                <div className="flex flex-wrap justify-center gap-2 mb-8">
-                  {["Web Development", "AI", "Career", "System Design"].map(t => (
+                {/* Suggestion Chips */}
+                <div className="flex flex-wrap justify-center gap-1.5 pt-2">
+                  {["Backend", "React", "AI", "Career", "Docker", "System Design"].map(chip => (
                     <button
-                      key={t}
-                      onClick={() => sendMessage(t)}
-                      className="px-3.5 py-1.5 text-xs font-bold border-2 border-black bg-white hover:bg-yellow-200 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all duration-150"
+                      key={chip}
+                      onClick={() => setInputValue(prev => prev ? `${prev} ${chip}` : chip)}
+                      className="px-3 py-1 bg-white border border-black/5 text-[10px] font-bold text-[#667085] rounded-full shadow-sm hover:bg-[#FAF9F5] transition-all"
                     >
-                      {t}
+                      {chip}
                     </button>
                   ))}
                 </div>
 
-                {/* Suggested prompts grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-lg">
-                  {suggestedPrompts.map((prompt, i) => (
+                {/* 4 Minimal Prompt Suggestions */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full pt-4">
+                  {suggestedPrompts.slice(0, 4).map((prompt, i) => (
                     <button
                       key={i}
                       onClick={() => sendMessage(prompt)}
                       className="
                         text-left px-4 py-3
-                        bg-white border-2 border-black
-                        shadow-[3px_3px_0px_0px_rgba(0,0,0,0.8)]
-                        hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,0.8)]
-                        hover:translate-x-[2px] hover:translate-y-[2px]
-                        hover:bg-yellow-50
-                        transition-all duration-150
-                        text-xs font-medium text-gray-700
-                        group
+                        bg-white/60 dark:bg-white/5 border border-black/5 dark:border-white/5
+                        rounded-xl shadow-sm
+                        hover:border-[#6D5DF6]/35 dark:hover:border-[#7B61FF]/35
+                        transition-all duration-200
+                        text-xs font-semibold text-[#111111]
                       "
                     >
-                      <span className="font-bold text-gray-900 group-hover:text-violet-700 transition-colors">{prompt}</span>
+                      {prompt}
                     </button>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Messages */}
-            {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex gap-3 group ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-              >
-                {/* Assistant avatar */}
-                {msg.role === "assistant" && (
-                  <div className="flex-shrink-0 mt-1">
-                    <img
-                      src={selectedPersona?.image || "/favicon.ico"}
-                      alt={selectedPersona?.name || "AI"}
-                      className="w-8 h-8 object-cover border-2 border-black rounded-full"
-                    />
-                  </div>
-                )}
+            {/* Message Bubbles */}
+            {messages.map((msg) => {
+              const isUser = msg.role === "user";
+              const accent = selectedPersona ? PERSONA_ACCENT[selectedPersona.key] : "#6D5DF6";
 
-                {/* Bubble */}
-                <div className={`max-w-[78%] flex flex-col gap-1 ${msg.role === "user" ? "items-end" : "items-start"}`}>
-                  {/* Timestamp - visible on group hover */}
-                  {msg.timestamp && (
-                    <span className="text-[9px] text-gray-400 font-medium opacity-0 group-hover:opacity-100 transition-opacity px-1">
-                      {new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                    </span>
+              return (
+                <div
+                  key={msg.id}
+                  className={`flex gap-3 group animate-message-appear ${isUser ? "justify-end" : "justify-start"}`}
+                >
+                  {/* Avatar */}
+                  {!isUser && (
+                    <div className="flex-shrink-0 mt-0.5">
+                      <img
+                        src={selectedPersona?.image || "/favicon.ico"}
+                        alt={selectedPersona?.name || "AI"}
+                        className="w-7 h-7 object-cover border border-white shadow rounded-full"
+                      />
+                    </div>
                   )}
 
-                  <div
-                    className={`px-4 py-3 border-2 border-black text-sm overflow-x-auto ${
-                      msg.role === "user"
-                        ? "text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,0.9)]"
-                        : "bg-white text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,0.7)]"
-                    }`}
-                    style={msg.role === "user" ? {
-                      background: "linear-gradient(135deg, #6D5DF6 0%, #9333EA 100%)",
-                    } : {}}
-                  >
-                    {/* Typing indicator */}
-                    {msg.role === "assistant" && msg.content === "" && isLoading ? (
-                      <div className="flex items-center gap-2 py-0.5">
-                        <span className="text-xs text-gray-500 font-medium">{personaFirstName} is thinking</span>
-                        <span className="flex gap-1">
-                          {[0, 1, 2].map(i => (
-                            <span
-                              key={i}
-                              className="w-1.5 h-1.5 bg-violet-500 rounded-full animate-bounce"
-                              style={{ animationDelay: `${i * 0.18}s` }}
-                            />
-                          ))}
-                        </span>
-                      </div>
-                    ) : (
-                      <div className="w-full overflow-x-auto" style={{ WebkitOverflowScrolling: "touch" }}>
-                        <MarkdownMessage content={msg.content} isUser={msg.role === "user"} />
+                  <div className={`max-w-[82%] flex flex-col gap-1.5 ${isUser ? "items-end" : "items-start"}`}>
+                    {msg.timestamp && (
+                      <span className="text-[9px] text-[#667085] font-semibold opacity-0 group-hover:opacity-100 transition-opacity px-1">
+                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    )}
+
+                    <div
+                      className={`px-4.5 py-3 border text-xs sm:text-sm shadow-sm ${isUser
+                        ? "text-white rounded-[20px] rounded-tr-none border-transparent"
+                        : "bg-white/70 dark:bg-white/5 backdrop-blur-xl text-[#111111] rounded-[20px] rounded-tl-none border-white/60 dark:border-white/10"
+                        }`}
+                      style={isUser ? {
+                        background: "linear-gradient(135deg, #6D5DF6 0%, #8b5cf6 100%)",
+                      } : {
+                        borderLeft: `3.5px solid ${accent}`
+                      }}
+                    >
+                      {/* Thinking spinner */}
+                      {!isUser && msg.content === "" && isLoading ? (
+                        <div className="flex items-center gap-2 py-0.5">
+                          <span className="text-[11px] text-[#667085] font-semibold">{personaFirstName} is thinking</span>
+                          <span className="flex gap-1">
+                            {[0, 1, 2].map(i => (
+                              <span
+                                key={i}
+                                className="w-1 h-1 bg-[#6D5DF6] rounded-full animate-bounce"
+                                style={{ animationDelay: `${i * 0.15}s` }}
+                              />
+                            ))}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="w-full overflow-x-auto" style={{ WebkitOverflowScrolling: "touch" }}>
+                          <MarkdownMessage content={msg.content} isUser={isUser} />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Action Panel */}
+                    {msg.content && !isUser && (
+                      <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity px-1">
+                        <button
+                          onClick={() => copyMessage(msg.id, msg.content)}
+                          className="flex items-center gap-1 text-[9px] font-bold text-[#667085] hover:text-[#111111] bg-white border border-black/5 px-2.5 py-1 rounded-full transition-all shadow-sm"
+                          title="Copy message"
+                        >
+                          {copiedMsgId === msg.id ? <FiCheck size={10} className="text-green-600 font-extrabold" /> : <FiCopy size={10} />}
+                          <span>{copiedMsgId === msg.id ? "Copied" : "Copy"}</span>
+                        </button>
+                        <button
+                          onClick={() => setFeedback(f => ({ ...f, [msg.id]: f[msg.id] === "like" ? null : "like" }))}
+                          className={`p-1.5 bg-white border border-black/5 rounded-full shadow-sm transition-all ${feedback[msg.id] === "like" ? "text-green-600" : "text-gray-400 hover:text-green-600"}`}
+                          aria-label="Like"
+                        >
+                          <FiThumbsUp size={10} />
+                        </button>
+                        <button
+                          onClick={() => setFeedback(f => ({ ...f, [msg.id]: f[msg.id] === "dislike" ? null : "dislike" }))}
+                          className={`p-1.5 bg-white border border-black/5 rounded-full shadow-sm transition-all ${feedback[msg.id] === "dislike" ? "text-red-500" : "text-gray-400 hover:text-red-500"}`}
+                          aria-label="Dislike"
+                        >
+                          <FiThumbsDown size={10} />
+                        </button>
                       </div>
                     )}
                   </div>
 
-                  {/* Actions (copy/like/dislike) — visible on group hover */}
-                  {msg.content && msg.role === "assistant" && (
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity px-1">
-                      <button
-                        onClick={() => copyMessage(msg.id, msg.content)}
-                        className="flex items-center gap-1 text-[10px] font-bold text-gray-500 hover:text-black border border-transparent hover:border-black px-2 py-1 transition-all"
-                        title="Copy"
-                      >
-                        {copiedMsgId === msg.id ? <FiCheck size={11} strokeWidth={3} className="text-green-600" /> : <FiCopy size={11} strokeWidth={3} />}
-                        {copiedMsgId === msg.id ? "Copied" : "Copy"}
-                      </button>
-                      <button
-                        onClick={() => setFeedback(f => ({ ...f, [msg.id]: f[msg.id] === "like" ? null : "like" }))}
-                        className={`p-1.5 border border-transparent hover:border-black transition-all ${feedback[msg.id] === "like" ? "text-green-600" : "text-gray-400 hover:text-green-600"}`}
-                        aria-label="Like"
-                      >
-                        <FiThumbsUp size={11} strokeWidth={3} />
-                      </button>
-                      <button
-                        onClick={() => setFeedback(f => ({ ...f, [msg.id]: f[msg.id] === "dislike" ? null : "dislike" }))}
-                        className={`p-1.5 border border-transparent hover:border-black transition-all ${feedback[msg.id] === "dislike" ? "text-red-500" : "text-gray-400 hover:text-red-500"}`}
-                        aria-label="Dislike"
-                      >
-                        <FiThumbsDown size={11} strokeWidth={3} />
-                      </button>
+                  {/* User icon */}
+                  {isUser && (
+                    <div className="flex-shrink-0 mt-0.5 w-7 h-7 bg-gradient-to-tr from-[#6D5DF6] to-[#8b5cf6] rounded-full flex items-center justify-center shadow-sm">
+                      <FiUser className="text-white" size={13} strokeWidth={3} />
                     </div>
                   )}
                 </div>
-
-                {/* User avatar */}
-                {msg.role === "user" && (
-                  <div className="flex-shrink-0 mt-1 w-8 h-8 bg-violet-600 border-2 border-black rounded-full flex items-center justify-center">
-                    <FiUser className="text-white" size={14} strokeWidth={3} />
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
             <div ref={messagesEndRef} />
           </div>
         </div>
 
-        {/* ── Input Area ── */}
-        <div className="flex-shrink-0 bg-white border-t-2 border-black">
-          {/* Topic chips — only when chat is empty */}
-          {messages.length === 0 && (
-            <div className="max-w-2xl mx-auto px-4 pt-3 flex flex-wrap gap-2">
-              {topicChips.map(chip => (
-                <button
-                  key={chip}
-                  onClick={() => sendMessage(chip)}
-                  className="text-[10px] font-bold text-gray-600 border border-black/30 px-3 py-1.5 hover:bg-violet-50 hover:border-violet-400 hover:text-violet-700 transition-all duration-150 rounded-full"
-                >
-                  {chip}
-                </button>
-              ))}
-            </div>
-          )}
+        {/* Input Bar */}
+        <div className="flex-shrink-0 bg-transparent">
+          <div className="max-w-3xl mx-auto px-4 pb-6">
+            <form onSubmit={handleSendMessage} className="relative flex items-center bg-white/70 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/10 rounded-2xl shadow-lg px-4 py-3 gap-3">
+              {/* Attachment Icon */}
+              <button
+                type="button"
+                className="text-[#667085] hover:text-[#111111] transition-colors p-1"
+                aria-label="Attach file"
+              >
+                <FiPaperclip size={16} />
+              </button>
 
-          <div className="max-w-2xl mx-auto px-4 py-3">
-            <form onSubmit={handleSendMessage} className="relative">
               <input
                 type="text"
                 value={inputValue}
                 onChange={e => setInputValue(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter" && !isLoading && wordCount <= maxWords) handleSendMessage(e); }}
-                placeholder={placeholder}
+                placeholder={`Ask ${personaFirstName} about React, Backend, AI, Career...`}
                 disabled={isLoading}
                 className="
-                  w-full text-black font-medium text-sm
-                  border-2 border-black
-                  bg-white
-                  shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)]
-                  focus:shadow-[2px_2px_0px_0px_rgba(109,93,246,0.6)]
-                  focus:border-violet-500
-                  px-4 py-3.5 pr-14
-                  focus:outline-none
-                  disabled:opacity-50
-                  transition-all duration-200
-                  placeholder:text-gray-400 placeholder:font-normal
+                  flex-1 text-black font-semibold text-xs sm:text-sm
+                  bg-transparent border-0 focus:outline-none
+                  disabled:opacity-60 placeholder:text-[#667085]/60 placeholder:font-medium
                 "
               />
-              {/* Word count warning */}
+
               {wordCount > maxWords && (
-                <div className="absolute left-0 -bottom-5 text-xs font-black text-red-600">Max 300 words</div>
+                <div className="absolute left-5 -bottom-5 text-[10px] font-bold text-red-500">Max 300 words</div>
               )}
+
+              {/* Send Button */}
               <button
                 type="submit"
                 disabled={!inputValue.trim() || isLoading || wordCount > maxWords}
                 className={`
-                  absolute right-2 top-2 w-10 h-10
-                  border-2 border-black
-                  flex items-center justify-center
-                  transition-all duration-200
+                  w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200
                   ${inputValue.trim() && !isLoading && wordCount <= maxWords
-                    ? "bg-gradient-to-br from-violet-600 to-purple-600 text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,0.8)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,0.8)] hover:translate-x-[2px] hover:translate-y-[2px]"
-                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    ? "text-white shadow-md hover:scale-105 active:scale-100"
+                    : "bg-black/5 text-[#667085]/40 cursor-not-allowed"
                   }
                 `}
+                style={inputValue.trim() && !isLoading && wordCount <= maxWords ? {
+                  background: `linear-gradient(135deg, ${selectedPersona ? PERSONA_ACCENT[selectedPersona.key] : "#6D5DF6"}, #8b5cf6)`,
+                } : {}}
               >
-                <FiSend size={15} strokeWidth={3} />
+                <FiSend size={12} strokeWidth={3} />
               </button>
             </form>
 
-            {/* Footer disclaimer */}
-            <p className="text-center text-gray-300 text-[10px] font-medium mt-2">
+            <p className="text-center text-[#667085] text-[9px] font-semibold mt-3">
               Tark AI can make mistakes. Verify important information.
             </p>
           </div>
