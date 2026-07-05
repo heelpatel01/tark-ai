@@ -81,7 +81,7 @@ const PERSONA_PROMPTS: Record<string, string[]> = {
   hiteshchoudhary: [
     "How should I start learning backend development?",
     "What projects should I build as a beginner?",
-    "How can AI help developers in 2025?",
+    "How can AI help developers in 2026?",
     "What is the difference between SQL and NoSQL?",
     "How do I get my first dev job?",
     "Explain React hooks in simple terms",
@@ -495,7 +495,7 @@ const ChatApp: React.FC = () => {
         return;
       }
       console.error(err);
-      
+
       const errorContent = "Sorry, something went wrong. Please try again.";
       const errorMsg: Message = {
         id: assistantMsgId,
