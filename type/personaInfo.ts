@@ -12,7 +12,7 @@ export type PersonaCategory = "tech-educators";
 
 // Category display names
 export const CATEGORY_NAMES: Record<PersonaCategory, string> = {
-  "tech-educators": "Tech Educators",
+  "tech-educators": "Engineering Mentors",
 };
 
 // Personas organized by category
@@ -21,15 +21,15 @@ export const PERSONAS_BY_CATEGORY: Record<PersonaCategory, PersonaInfo[]> = {
     {
       key: "hiteshchoudhary",
       name: "Hitesh Choudhary",
-      role: "Founder of Chai Code, YouTube Educator",
-      personality: "Great teacher, passionate about technology and education",
+      role: "Founder, Chai Code · Full-Stack & Career Mentor",
+      personality: "Project-first educator. Explains real-world engineering with simple analogies, Hinglish, and honest career advice.",
       image: "/hiteshchoudhary.png"
     },
     {
       key: "piyushgarg",
       name: "Piyush Garg",
-      role: "Building Teachyst, Coding YouTuber",
-      personality: "Advanced GenAI knowledge, passionate about teaching",
+      role: "Founder, Teachyst · AI & Backend Engineering Mentor",
+      personality: "Systems thinker. Builds intuition before syntax — covering AI agents, MCP, backend, and modern dev workflows.",
       image: "/piyushgarg.png"
     },
   ],

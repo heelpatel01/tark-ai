@@ -11,6 +11,8 @@ import {
   FiChevronRight,
   FiThumbsUp,
   FiThumbsDown,
+  FiChevronDown,
+  FiRepeat,
 } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
@@ -85,6 +87,27 @@ const PERSONA_PROMPTS: Record<string, string[]> = {
     "How to scale a Node.js application?",
   ],
 };
+
+// ── Available personas for the switcher ────────────────────────────
+const SWITCH_PERSONAS = [
+  {
+    key: "hiteshchoudhary",
+    name: "Hitesh Choudhary",
+    role: "Founder, Chai Code · Full-Stack & Career Mentor",
+    image: "/hiteshchoudhary.png",
+    accent: "#6D5DF6",
+    badge: "☕ Chai Code",
+  },
+  {
+    key: "piyushgarg",
+    name: "Piyush Garg",
+    role: "Founder, Teachyst · AI & Backend Engineering Mentor",
+    image: "/piyushgarg.png",
+    accent: "#06B6D4",
+    badge: "⚡ GenAI",
+  },
+];
+
 
 const DEFAULT_PROMPTS = [
   "How should I start learning programming?",
@@ -238,6 +261,8 @@ const ChatApp: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [switcherOpen, setSwitcherOpen] = useState(false);
+  const switcherRef = useRef<HTMLDivElement>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -281,6 +306,36 @@ const ChatApp: React.FC = () => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  // Close switcher on outside click
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (switcherRef.current && !switcherRef.current.contains(e.target as Node)) {
+        setSwitcherOpen(false);
+      }
+    };
+    if (switcherOpen) document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [switcherOpen]);
+
+  const handleSwitchPersona = (p: typeof SWITCH_PERSONAS[0]) => {
+    const personaData: PersonaData = {
+      key: p.key,
+      name: p.name,
+      role: p.role,
+      personality: "",
+      image: p.image,
+      communicationStyle: "Engaging and thoughtful",
+      tone: "Professional yet approachable",
+      expertise: "Various fields of knowledge",
+      additionalContext: "",
+    };
+    localStorage.setItem("selectedPersona", JSON.stringify(personaData));
+    setSelectedPersona(personaData);
+    setMessages([]);
+    setActiveConversationId(null);
+    setSwitcherOpen(false);
+  };
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || isLoading || !selectedPersona) return;
@@ -433,7 +488,7 @@ const ChatApp: React.FC = () => {
             }
           </button>
 
-          {/* Persona info */}
+          {/* Persona info + Switch dropdown */}
           {selectedPersona && (
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <div className="relative flex-shrink-0">
@@ -444,7 +499,7 @@ const ChatApp: React.FC = () => {
                 />
                 <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 border-2 border-white rounded-full" />
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <h1 className="font-black text-black text-base leading-none truncate">{selectedPersona.name}</h1>
                   <span className="hidden sm:flex items-center gap-1 text-[9px] font-bold text-green-700 bg-green-100 border border-green-300 px-1.5 py-0.5 rounded-full flex-shrink-0">
@@ -453,6 +508,106 @@ const ChatApp: React.FC = () => {
                   </span>
                 </div>
                 <p className="text-[10px] text-gray-400 font-medium mt-0.5 hidden sm:block">Inspired by public talks and videos</p>
+              </div>
+
+              {/* ── Switch Mentor Dropdown ── */}
+              <div className="relative flex-shrink-0" ref={switcherRef}>
+                <button
+                  onClick={() => setSwitcherOpen(o => !o)}
+                  className={`flex items-center gap-1.5 text-xs font-black uppercase tracking-wider px-3 py-2 border-2 border-black transition-all duration-150
+                    ${switcherOpen
+                      ? "bg-black text-white shadow-none translate-x-[2px] translate-y-[2px]"
+                      : "bg-white text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px]"
+                    }`}
+                  aria-label="Switch mentor"
+                >
+                  <FiRepeat size={12} strokeWidth={3} />
+                  <span className="hidden sm:inline">Switch</span>
+                  <FiChevronDown size={11} strokeWidth={3} className={`transition-transform duration-200 ${switcherOpen ? "rotate-180" : ""}`} />
+                </button>
+
+                {/* Dropdown popup */}
+                {switcherOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-72 bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] z-50 animate-slide-up-fade">
+                    {/* Header */}
+                    <div className="bg-black px-4 py-2.5 flex items-center justify-between">
+                      <span className="text-white font-black text-xs uppercase tracking-widest">Switch Mentor</span>
+                      <button
+                        onClick={() => setSwitcherOpen(false)}
+                        className="text-white/60 hover:text-white transition-colors"
+                      >
+                        <FiX size={14} strokeWidth={3} />
+                      </button>
+                    </div>
+
+                    {/* Persona options */}
+                    <div className="p-2 space-y-2">
+                      {SWITCH_PERSONAS.map((p) => {
+                        const isActive = selectedPersona?.key === p.key;
+                        return (
+                          <div
+                            key={p.key}
+                            className={`flex items-center gap-3 p-3 border-2 transition-all duration-150 ${
+                              isActive
+                                ? "border-black bg-gray-50 cursor-default"
+                                : "border-transparent hover:border-black hover:bg-yellow-50 cursor-pointer"
+                            }`}
+                            onClick={() => !isActive && handleSwitchPersona(p)}
+                          >
+                            {/* Avatar */}
+                            <div className="relative flex-shrink-0">
+                              <img
+                                src={p.image}
+                                alt={p.name}
+                                className="w-12 h-12 object-cover border-2 border-black rounded-full"
+                              />
+                              {isActive && (
+                                <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-400 border-2 border-white rounded-full flex items-center justify-center">
+                                  <FiCheck size={8} strokeWidth={4} className="text-white" />
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Info */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1.5 mb-0.5">
+                                <p className="font-black text-black text-sm truncate">{p.name}</p>
+                                {isActive && (
+                                  <span className="text-[9px] font-black text-green-700 bg-green-100 border border-green-300 px-1.5 py-0.5 flex-shrink-0">Active</span>
+                                )}
+                              </div>
+                              <p className="text-[10px] text-gray-400 font-medium truncate">{p.role}</p>
+                              <span
+                                className="inline-block text-[9px] font-black uppercase tracking-wider mt-1.5 px-2 py-0.5 border border-current"
+                                style={{ color: p.accent }}
+                              >
+                                {p.badge}
+                              </span>
+                            </div>
+
+                            {/* Switch button */}
+                            {!isActive && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleSwitchPersona(p); }}
+                                className="flex-shrink-0 text-[10px] font-black uppercase tracking-wider text-white px-3 py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+                                style={{ background: p.accent }}
+                              >
+                                Switch
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Footer */}
+                    <div className="border-t-2 border-black px-4 py-2 bg-gray-50">
+                      <p className="text-[9px] text-gray-400 font-medium text-center">
+                        Switching clears the current conversation
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}

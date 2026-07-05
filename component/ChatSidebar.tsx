@@ -6,8 +6,9 @@ import {
   FiMessageSquare,
   FiArrowLeft,
   FiX,
-  FiHome,
   FiZap,
+  FiClock,
+  FiBookOpen,
 } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 
@@ -44,27 +45,49 @@ interface ChatSidebarProps {
   onSendTopic?: (topic: string) => void;
 }
 
-// Per-persona trait pills
-const PERSONA_TRAITS: Record<string, { icon: string; label: string }[]> = {
-  hiteshchoudhary: [
-    { icon: "☕", label: "Chai Code" },
-    { icon: "🚀", label: "Founder" },
-    { icon: "🎯", label: "Practical" },
-  ],
-  piyushgarg: [
-    { icon: "⚡", label: "GenAI" },
-    { icon: "🏗️", label: "Teachyst" },
-    { icon: "🔥", label: "System Design" },
-  ],
+// Per-persona config
+const PERSONA_CONFIG: Record<
+  string,
+  { accent: string; traits: { icon: string; label: string }[]; learningPath: string }
+> = {
+  hiteshchoudhary: {
+    accent: "#6D5DF6",
+    traits: [
+      { icon: "☕", label: "Chai Code" },
+      { icon: "🚀", label: "Founder" },
+      { icon: "🎯", label: "Practical" },
+    ],
+    learningPath: "Try: System Design → Backend → Deployment",
+  },
+  piyushgarg: {
+    accent: "#06B6D4",
+    traits: [
+      { icon: "⚡", label: "GenAI" },
+      { icon: "🏗️", label: "Teachyst" },
+      { icon: "🔥", label: "Systems" },
+    ],
+    learningPath: "Try: AI Agents → MCP → Loop Engineering",
+  },
 };
 
-const DEFAULT_TRAITS = [
-  { icon: "🤖", label: "AI Mentor" },
-  { icon: "💡", label: "Educator" },
-  { icon: "🛠️", label: "Practical" },
-];
+const DEFAULT_CONFIG = {
+  accent: "#6D5DF6",
+  traits: [
+    { icon: "🤖", label: "AI Mentor" },
+    { icon: "💡", label: "Educator" },
+    { icon: "🛠️", label: "Practical" },
+  ],
+  learningPath: "Try: Backend → System Design → AI",
+};
 
-const QUICK_TOPICS = ["Backend", "React", "AI", "Career", "System Design", "Projects"];
+const QUICK_TOPICS = [
+  { label: "Backend", icon: "🔧" },
+  { label: "React", icon: "⚛️" },
+  { label: "AI / LLMs", icon: "🧠" },
+  { label: "Career", icon: "🎯" },
+  { label: "System Design", icon: "🏗️" },
+  { label: "Projects", icon: "🚀" },
+];
 
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -90,9 +113,9 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   onSendTopic,
 }) => {
   const router = useRouter();
-  const traits = selectedPersona
-    ? PERSONA_TRAITS[selectedPersona.key] ?? DEFAULT_TRAITS
-    : DEFAULT_TRAITS;
+  const config = selectedPersona
+    ? PERSONA_CONFIG[selectedPersona.key] ?? DEFAULT_CONFIG
+    : DEFAULT_CONFIG;
 
   const filteredConversations = conversations.filter((c) =>
     selectedPersona ? c.persona_key === selectedPersona.key : true
@@ -103,38 +126,41 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
       {/* ── Logo ── */}
       <div
-        className="px-4 pt-4 pb-3 border-b-2 border-black cursor-pointer flex items-center gap-2 hover:bg-yellow-50 transition-colors flex-shrink-0"
+        className="px-4 pt-4 pb-3 border-b-2 border-black cursor-pointer flex items-center gap-2.5 hover:bg-gray-50 transition-colors flex-shrink-0"
         onClick={() => { if (isMobile) onClose(); router.push("/"); }}
       >
         <img src="/tarkai-logo-navbar.png" alt="Tark AI" className="h-8 w-auto object-contain" />
         <div className="flex flex-col">
           <span className="font-black text-black text-sm leading-none">Tark AI</span>
-          <span className="text-[9px] font-medium text-gray-400 uppercase tracking-widest mt-0.5">
-            Reason. Learn. Build.
+          <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">
+            Mentor Platform
           </span>
         </div>
       </div>
 
-      {/* ── Persona Card ── */}
+      {/* ── Current Mentor Card ── */}
       {selectedPersona && (
-        <div className="px-3 py-3 border-b-2 border-black flex-shrink-0">
-          <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2">
+        <div className="px-3 py-3 border-b-2 border-black flex-shrink-0 bg-gray-50">
+          <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2.5">
             Current Mentor
           </p>
-          <div className="flex items-center gap-3 mb-2.5">
+          <div className="flex items-center gap-3 mb-3">
             <div className="relative flex-shrink-0">
               <img
                 src={selectedPersona.image}
                 alt={selectedPersona.name}
-                className="w-12 h-12 object-cover border-2 border-black rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)]"
+                className="w-11 h-11 object-cover border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] rounded-full"
               />
-              <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 border-2 border-white rounded-full" />
+              <span
+                className="absolute -bottom-0.5 -right-0.5 w-3 h-3 border-2 border-white rounded-full"
+                style={{ background: config.accent }}
+              />
             </div>
             <div className="min-w-0">
               <h3 className="font-black text-black text-sm leading-tight truncate">
                 {selectedPersona.name}
               </h3>
-              <p className="text-[10px] text-gray-500 font-medium mt-0.5 line-clamp-1">
+              <p className="text-[10px] text-gray-400 font-medium mt-0.5 line-clamp-1">
                 {selectedPersona.role.split(",")[0]}
               </p>
             </div>
@@ -142,10 +168,10 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
           {/* Trait pills */}
           <div className="flex flex-wrap gap-1 mb-3">
-            {traits.map((t) => (
+            {config.traits.map((t) => (
               <span
                 key={t.label}
-                className="inline-flex items-center gap-1 px-2 py-0.5 bg-violet-50 border border-violet-200 rounded-full text-[10px] font-bold text-violet-700"
+                className="inline-flex items-center gap-1 px-2 py-0.5 border border-black/20 text-[10px] font-bold text-black/70 bg-white"
               >
                 {t.icon} {t.label}
               </span>
@@ -154,10 +180,10 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
           <button
             onClick={onBackToPersonas}
-            className="w-full flex items-center justify-center gap-1.5 text-[10px] font-bold text-black border border-black px-3 py-1.5 hover:bg-yellow-100 transition-colors"
+            className="w-full flex items-center justify-center gap-1.5 text-[10px] font-black text-black border-2 border-black px-3 py-1.5 hover:bg-yellow-100 transition-colors shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]"
           >
             <FiArrowLeft size={10} strokeWidth={3} />
-            Change Persona
+            Switch Mentor
           </button>
         </div>
       )}
@@ -168,7 +194,6 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
           onClick={onNewChat}
           className="
             w-full flex items-center justify-center gap-2
-            bg-gradient-to-r from-violet-600 to-purple-600
             text-white font-black uppercase text-xs tracking-wider
             py-2.5 px-4
             border-2 border-black
@@ -177,35 +202,56 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
             hover:translate-x-[2px] hover:translate-y-[2px]
             transition-all duration-150
           "
+          style={{ background: `linear-gradient(135deg, ${config.accent}, ${config.accent}bb)` }}
         >
           <FiPlus strokeWidth={3} size={14} />
-          New Chat
+          New Session
         </button>
       </div>
 
-      {/* ── Recent Chats ── */}
+      {/* ── Pinned Insights (placeholder) ── */}
+      <div className="px-3 py-3 border-b-2 border-black flex-shrink-0 bg-violet-50/50">
+        <div className="flex items-center gap-2 mb-2">
+          <FiBookOpen size={11} strokeWidth={3} className="text-violet-400" />
+          <p className="text-[9px] font-black text-violet-400 uppercase tracking-widest">
+            Learning Path
+          </p>
+        </div>
+        <div className="bg-white border border-black/10 px-3 py-2">
+          <p className="text-[10px] font-bold text-black/60 leading-relaxed">
+            {config.learningPath}
+          </p>
+        </div>
+      </div>
+
+      {/* ── Conversation Timeline ── */}
       <div className="flex-1 min-h-0 flex flex-col overflow-hidden px-3 py-3">
-        <div className="flex items-center gap-2 mb-2 flex-shrink-0">
-          <FiMessageSquare size={11} strokeWidth={3} className="text-gray-400" />
-          <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">
-            Recent Chats
+        <div className="flex items-center gap-2 mb-3 flex-shrink-0">
+          <FiClock size={11} strokeWidth={3} className="text-gray-400" />
+          <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
+            Recent Sessions
           </p>
         </div>
 
-        <div className="flex-1 overflow-y-auto space-y-1 min-h-0">
+        <div className="flex-1 overflow-y-auto space-y-1.5 min-h-0">
           {filteredConversations.length === 0 ? (
-            <p className="text-[10px] text-gray-400 font-medium text-center py-4">
-              No chats yet. Start a conversation!
-            </p>
+            <div className="text-center py-6">
+              <FiMessageSquare className="w-6 h-6 text-gray-200 mx-auto mb-2" />
+              <p className="text-[10px] text-gray-400 font-medium">
+                No sessions yet.
+                <br />
+                Start your first conversation!
+              </p>
+            </div>
           ) : (
             filteredConversations.map((conv) => (
               <div
                 key={conv.id}
                 onClick={() => { onSelectConversation(conv.id); if (isMobile) onClose(); }}
-                className={`group flex items-start justify-between gap-2 p-2.5 rounded-none border cursor-pointer transition-all duration-150 ${
+                className={`group flex items-start justify-between gap-2 p-2.5 border-l-2 cursor-pointer transition-all duration-150 ${
                   activeConversationId === conv.id
-                    ? "bg-violet-100 border-violet-400 shadow-[2px_2px_0px_0px_rgba(109,93,246,0.5)]"
-                    : "border-transparent hover:bg-yellow-50 hover:border-black/20"
+                    ? "border-l-violet-500 bg-violet-50 border border-violet-200"
+                    : "border-l-transparent border border-transparent hover:bg-gray-50 hover:border-black/10"
                 }`}
               >
                 <div className="flex-1 min-w-0">
@@ -218,10 +264,10 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                 </div>
                 <button
                   onClick={(e) => { e.stopPropagation(); onDeleteConversation(conv.id); }}
-                  className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-all flex-shrink-0"
-                  aria-label="Delete conversation"
+                  className="opacity-0 group-hover:opacity-100 p-1 text-gray-300 hover:text-red-500 transition-all flex-shrink-0"
+                  aria-label="Delete session"
                 >
-                  <FiTrash2 size={12} strokeWidth={2.5} />
+                  <FiTrash2 size={11} strokeWidth={2.5} />
                 </button>
               </div>
             ))
@@ -231,21 +277,22 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
       {/* ── Quick Topics ── */}
       {onSendTopic && (
-        <div className="px-3 py-3 border-t-2 border-black flex-shrink-0">
-          <div className="flex items-center gap-2 mb-2">
+        <div className="px-3 py-3 border-t-2 border-black flex-shrink-0 bg-gray-50">
+          <div className="flex items-center gap-2 mb-2.5">
             <FiZap size={11} strokeWidth={3} className="text-gray-400" />
-            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">
+            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
               Quick Topics
             </p>
           </div>
-          <div className="flex flex-wrap gap-1.5">
-            {QUICK_TOPICS.map((topic) => (
+          <div className="grid grid-cols-2 gap-1.5">
+            {QUICK_TOPICS.map(({ label, icon }) => (
               <button
-                key={topic}
-                onClick={() => { onSendTopic(topic); if (isMobile) onClose(); }}
-                className="text-[10px] font-bold text-black border border-black px-2.5 py-1 hover:bg-yellow-300 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all duration-150"
+                key={label}
+                onClick={() => { onSendTopic(label); if (isMobile) onClose(); }}
+                className="text-[10px] font-bold text-black border-2 border-black px-2 py-1.5 hover:bg-yellow-300 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all duration-150 text-left flex items-center gap-1.5 bg-white"
               >
-                {topic}
+                <span>{icon}</span>
+                {label}
               </button>
             ))}
           </div>
@@ -255,7 +302,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
       {/* ── Footer ── */}
       <div className="px-4 py-2 border-t border-black/10 flex-shrink-0">
         <p className="text-[9px] text-gray-300 font-medium text-center">
-          Built with ❤️ by Tark AI
+          Reason. Learn. Build. — Tark AI
         </p>
       </div>
     </div>
@@ -270,7 +317,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
           } transition-transform duration-300 ease-in-out bg-white border-r-2 border-black flex flex-col h-full overflow-hidden shadow-xl`}
         >
           <div className="flex items-center justify-between px-4 py-3 border-b-2 border-black bg-white flex-shrink-0">
-            <span className="font-black text-black text-sm uppercase">Menu</span>
+            <span className="font-black text-black text-sm uppercase tracking-wider">Mentor Session</span>
             <button
               onClick={onClose}
               className="p-1.5 border-2 border-black text-black hover:bg-yellow-100 transition-colors"
@@ -285,7 +332,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
         </div>
         {isOpen && (
           <div
-            className="md:hidden fixed inset-0 bg-black/50 z-30 backdrop-blur-sm"
+            className="md:hidden fixed inset-0 bg-black/40 z-30 backdrop-blur-sm"
             onClick={onClose}
           />
         )}
