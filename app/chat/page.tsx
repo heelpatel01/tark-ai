@@ -263,6 +263,24 @@ const ChatApp: React.FC = () => {
   const [inputValue, setInputValue] = useState("");
   const [copiedMsgId, setCopiedMsgId] = useState<string | null>(null);
 
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const cancelActiveRequest = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setIsLoading(false);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
   const getWordCount = (text: string) => text.trim().split(/\s+/).filter(Boolean).length;
   const wordCount = getWordCount(inputValue);
   const maxWords = 300;
@@ -333,6 +351,7 @@ const ChatApp: React.FC = () => {
   }, [switcherOpen]);
 
   const handleSwitchPersona = (p: typeof SWITCH_PERSONAS[0]) => {
+    cancelActiveRequest();
     const personaData: PersonaData = {
       key: p.key,
       name: p.name,
@@ -354,8 +373,10 @@ const ChatApp: React.FC = () => {
   const sendMessage = async (text: string) => {
     if (!text.trim() || isLoading || !selectedPersona) return;
 
+    cancelActiveRequest();
+
     const userMsg: Message = { id: crypto.randomUUID(), role: "user", content: text, timestamp: Date.now() };
-    let nextMessages: Message[] = [...messages, userMsg];
+    const nextMessages: Message[] = [...messages, userMsg];
     setMessages(nextMessages);
 
     let convId = activeConversationId;
@@ -365,13 +386,14 @@ const ChatApp: React.FC = () => {
     }
     if (convId) persistConversationMessages(convId, nextMessages);
 
-    const assistantMsg: Message = { id: crypto.randomUUID(), role: "assistant", content: "", timestamp: Date.now() };
-    nextMessages = [...nextMessages, assistantMsg];
-    setMessages(nextMessages);
-    if (convId) persistConversationMessages(convId, nextMessages);
-
     setInputValue("");
     setIsLoading(true);
+
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
+    const assistantMsgId = crypto.randomUUID();
+    let hasAddedAssistantMsg = false;
 
     try {
       const response = await fetch("/api/gemini", {
@@ -381,6 +403,7 @@ const ChatApp: React.FC = () => {
           messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })),
           personaKey: selectedPersona.key,
         }),
+        signal: abortController.signal,
       });
 
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -393,24 +416,76 @@ const ChatApp: React.FC = () => {
         const { done, value } = await reader.read();
         if (done) break;
         acc += decoder.decode(value, { stream: true });
+
+        if (acc.trim() !== "") {
+          if (!hasAddedAssistantMsg) {
+            hasAddedAssistantMsg = true;
+            const assistantMsg: Message = {
+              id: assistantMsgId,
+              role: "assistant",
+              content: acc,
+              timestamp: Date.now(),
+            };
+            setMessages(prev => {
+              if (prev.some(m => m.id === assistantMsgId)) {
+                return prev.map(m => m.id === assistantMsgId ? { ...m, content: acc } : m);
+              }
+              const updated = [...prev, assistantMsg];
+              if (convId) persistConversationMessages(convId, updated);
+              return updated;
+            });
+          } else {
+            setMessages(prev => {
+              const updated = prev.map(m => m.id === assistantMsgId ? { ...m, content: acc } : m);
+              if (convId) persistConversationMessages(convId, updated);
+              return updated;
+            });
+          }
+        }
+      }
+
+      if (acc.trim() === "") {
         setMessages(prev => {
-          const updated = prev.map(m => m.id === assistantMsg.id ? { ...m, content: acc } : m);
+          const updated = prev.filter(m => m.id !== assistantMsgId);
           if (convId) persistConversationMessages(convId, updated);
           return updated;
         });
+      } else {
+        if (convId) {
+          persistConversationMessages(convId, [
+            ...nextMessages,
+            { id: assistantMsgId, role: "assistant", content: acc, timestamp: Date.now() },
+          ]);
+        }
       }
-
-      if (convId) {
-        persistConversationMessages(convId, [
-          ...nextMessages.slice(0, -1),
-          { ...assistantMsg, content: acc },
-        ]);
+    } catch (err: any) {
+      if (err.name === "AbortError") {
+        console.log("Fetch aborted");
+        return;
       }
-    } catch (err) {
       console.error(err);
-      setMessages(prev => prev.map(m => m.id === assistantMsg.id ? { ...m, content: "Sorry, something went wrong. Please try again." } : m));
+      
+      const errorContent = "Sorry, something went wrong. Please try again.";
+      const errorMsg: Message = {
+        id: assistantMsgId,
+        role: "assistant",
+        content: errorContent,
+        timestamp: Date.now(),
+      };
+
+      setMessages(prev => {
+        const exists = prev.some(m => m.id === assistantMsgId);
+        const updated = exists
+          ? prev.map(m => m.id === assistantMsgId ? { ...m, content: errorContent } : m)
+          : [...prev, errorMsg];
+        if (convId) persistConversationMessages(convId, updated);
+        return updated;
+      });
     } finally {
-      setIsLoading(false);
+      if (abortControllerRef.current === abortController) {
+        abortControllerRef.current = null;
+        setIsLoading(false);
+      }
     }
   };
 
@@ -422,24 +497,30 @@ const ChatApp: React.FC = () => {
   const handleSendTopic = (topic: string) => sendMessage(topic);
 
   const handleNewChat = () => {
+    cancelActiveRequest();
     setMessages([]);
     setActiveConversationId(null);
     if (isMobile) setMobileSidebarOpen(false);
   };
 
   const handleSelectConversation = (id: string) => {
+    cancelActiveRequest();
     setActiveConversationId(id);
     loadMessages(id);
     if (isMobile) setMobileSidebarOpen(false);
   };
 
   const handleDeleteConversation = (id: string) => {
+    if (activeConversationId === id) {
+      cancelActiveRequest();
+    }
     setConversations(prev => prev.filter(c => c.id !== id));
     setConversationMessages(prev => { const next = { ...prev }; delete next[id]; return next; });
     if (activeConversationId === id) handleNewChat();
   };
 
   const handleBackToPersonas = () => {
+    cancelActiveRequest();
     localStorage.removeItem("selectedPersona");
     router.push("/persona");
   };
@@ -688,6 +769,11 @@ const ChatApp: React.FC = () => {
             {messages.map((msg) => {
               const isUser = msg.role === "user";
               const accent = selectedPersona ? PERSONA_ACCENT[selectedPersona.key] : "#6D5DF6";
+
+              // Never render an assistant message whose content is empty or only whitespace.
+              if (!isUser && (!msg.content || !msg.content.trim())) {
+                return null;
+              }
 
               return (
                 <div
