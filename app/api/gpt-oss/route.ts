@@ -69,6 +69,7 @@ export async function POST(req: NextRequest) {
 
 **Additional Context:**
 ${personaInfo?.additionalContext || 'Provide helpful, accurate, and engaging responses to user queries.'}
+${personaInfo?.interaction_examples ? `\n**Interaction Examples (few-shot context demonstrating your tone and style):**\n` + personaInfo.interaction_examples.map(ex => `User: "${ex.user}"\nAssistant: "${ex.persona}"`).join("\n\n") : ''}
 
 Remember to embody this persona consistently throughout the conversation.`;
     } else {
@@ -103,6 +104,7 @@ Remember to embody this persona consistently throughout the conversation.`;
 
 **Additional Context:**
 ${personaInfo?.additionalContext || 'Provide helpful, accurate, and engaging responses to user queries.'}
+${personaInfo?.interaction_examples ? `\n**Interaction Examples (few-shot context demonstrating your tone and style):**\n` + personaInfo.interaction_examples.map(ex => `User: "${ex.user}"\nAssistant: "${ex.persona}"`).join("\n\n") : ''}
 
 Remember to embody this persona consistently throughout the conversation.`;
     }
