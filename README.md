@@ -58,6 +58,89 @@ Instead, the system focuses on reproducing how these educators **think, teach, s
 
 ---
 
+# 🧩 AI Tool Calling & Chat Branching
+
+> Extension for the **ChaiGPT Streaming Assignment**. Both features are built *on top* of the existing streaming architecture — no rewrite, no new backend service, no heavy database.
+
+## Overview
+
+Two production-grade capabilities were layered onto Tark AI:
+
+1. **Real Gemini function calling** — the model itself decides, per turn, whether it needs live information. When it does, it invokes a `searchWeb` tool; the result streams back and generation continues naturally, all inside the same chat stream. If the model already knows the answer, no tool is called.
+2. **ChatGPT-style branching** — any message can become the fork point for a new, independently-continuing conversation branch, with switch / rename / delete, persisted across reloads.
+
+The token-by-token streaming experience, the persona system, the thinking indicator and the entire UI are unchanged.
+
+## Tool Calling Flow
+
+```
+User ──▶ Gemini ──▶ "Do I need live data?"
+                          │
+              ┌───────────┴───────────┐
+              │ no                     │ yes
+              ▼                        ▼
+        stream answer            searchWeb(query)      ← real function call
+                                       │
+                                 Tavily provider
+                                       │
+                                 tool result ──▶ Gemini continues ──▶ final answer streams
+```
+
+- The decision is made by Gemini via the AI SDK's native tool calling (`streamText({ tools, stopWhen: stepCountIs(5) })`) — **never simulated with prompt hacks**.
+- Tool activity is surfaced inline in chat (no modal / popup):
+
+  ```
+  🌐  Searching Web...
+  Searching: "latest AI news"
+  ✓  Search Complete
+  ```
+
+- **Reusable tool layer** (`lib/tools/`): `schemas.ts` (zod input) → `search.ts` (provider-agnostic; **Tavily** by default, swappable) → `executor.ts` (normalizes result for the model + a display summary) → `registry.ts` (builds the Gemini `tools` object).
+- **Graceful failure**: if search fails or `TAVILY_API_KEY` is missing, the chat shows *"Unable to retrieve live information."* and Gemini answers from its own knowledge. It never crashes.
+- **Persistence**: tool events are stored as ordinary chat messages (`role: "tool"`, `tool`, `query`, `result`). No `ToolCalls` / `ToolResponses` tables, no event sourcing.
+
+The single response is streamed as **NDJSON events** (`{type:"text"|"tool"|"error"}`) so one stream carries both assistant tokens and tool activity while preserving the original smooth cadence.
+
+## Branching Flow
+
+```
+Main     A ─ B ─ C ─ D
+              │
+              └── Branch:  A ─ B ─ X ─ Y      (forked from B)
+```
+
+Opening a branch loads **the original messages up to `parentMessageId` + that branch's own messages**. Both threads continue independently.
+
+- Hover any message ▸ **⋮** ▸ **Create Branch**.
+- Branches appear nested under their conversation in the sidebar with **Switch · Rename · Delete** (the root *Main* branch can't be deleted).
+- Thread reconstruction walks the parent chain, so nested branches inherit correctly.
+
+## Data Model (intentionally tiny)
+
+Persisted client-side in `localStorage` (`services/persistence.ts`) — works on serverless with zero backend, migrations or extra env vars, and upgrades the previously in-memory history to survive reloads.
+
+| Entity | Fields |
+| --- | --- |
+| **Conversation** | `id`, `title`, `personaKey`, `currentBranchId`, `createdAt` |
+| **Branch** | `id`, `conversationId`, `name`, `parentMessageId` (null → *Main*), `createdAt` |
+| **Message** | `id`, `conversationId`, `branchId`, `role` (`user`\|`assistant`\|`tool`), `content`, `createdAt` (+ `tool`/`query`/`result` for tool messages) |
+
+## New Architecture Map
+
+```
+lib/tools/        schemas · search (Tavily, replaceable) · executor · registry
+services/         persistence (localStorage store) · chatClient (NDJSON transport)
+hooks/            useConversations (state + branching) · useChat (send/stream orchestration)
+components/
+  chat/           Markdown · MessageBubble
+  tool/           ToolEvent   (🌐 in-chat search card)
+  branch/         BranchMenu  (⋮ create branch) · BranchList (sidebar switch/rename/delete)
+types/chat.ts     Message · Conversation · Branch · StreamEvent
+app/api/gemini/   route.ts    (function calling + NDJSON event stream)
+```
+
+---
+
 # ✨ Features
 
 ## 🤖 AI Persona Conversations
@@ -344,8 +427,17 @@ Create
 Add
 
 ```env
+# Required — Google Gemini (note the double "Y")
 GEMINI_API_KEYY=YOUR_GEMINI_API_KEY
+
+# Optional — enables the searchWeb tool (falls back gracefully if absent)
+TAVILY_API_KEY=YOUR_TAVILY_API_KEY
 ```
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `GEMINI_API_KEYY` | ✅ | Gemini 2.5 Flash streaming + function calling |
+| `TAVILY_API_KEY` | ⭕ | Live web search for the `searchWeb` tool. Without it, search degrades gracefully. |
 
 ---
 
@@ -363,13 +455,26 @@ http://localhost:3000
 
 ---
 
+# 📸 Screenshots
+
+> _Placeholders — drop images into `public/` and update the paths._
+
+| Streaming chat | 🌐 Web search (tool calling) | Chat branching |
+| --- | --- | --- |
+| `public/screenshot-chat.png` | `public/screenshot-tool.png` | `public/screenshot-branch.png` |
+
+---
+
 # 📈 Future Improvements
 
+- ✅ ~~Tool Calling~~ (shipped — `searchWeb` via Gemini function calling)
+- ✅ ~~Chat Branching~~ (shipped — ChatGPT-style branches)
+- Additional tools (calculator, code execution, docs retrieval)
+- Server-side persistence (Postgres/Prisma) as a drop-in for the localStorage store
 - Custom Persona Builder
 - Voice Conversations
 - Long-Term Memory
 - Image Understanding
-- Tool Calling
 - MCP Integration
 - RAG Support
 - Persona Marketplace

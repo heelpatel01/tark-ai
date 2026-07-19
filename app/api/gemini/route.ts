@@ -1,7 +1,10 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
-import { streamText } from 'ai';
+import { streamText, stepCountIs } from 'ai';
 import { NextRequest } from 'next/server';
 import { getPersona } from '@/lib/personaData';
+import { buildAiTools } from '@/lib/tools/registry';
+import type { ExecutedTool } from '@/lib/tools/executor';
+import type { StreamEvent } from '@/types/chat';
 
 const google = createGoogleGenerativeAI({
   apiKey: process.env.GEMINI_API_KEYY, // Make sure to set this in your environment variables
@@ -75,6 +78,20 @@ ${userContextBlock}
 - Communication Style: ${personaInfo?.communicationStyle || 'Clear, concise, and approachable'}
 - Tone: ${personaInfo?.tone || 'Professional yet warm'}
 - Expertise Areas: ${personaInfo?.expertise || 'General knowledge and assistance'}
+
+========================
+LIVE INFORMATION (TOOLS)
+========================
+
+You have access to a searchWeb tool.
+
+• Rely on your own knowledge by default. If you already know the answer, answer directly and do NOT call any tool.
+
+• Call searchWeb ONLY when the answer genuinely depends on live or post-training information: today's news, latest releases or versions, current prices, sports scores, weather, or very recent events.
+
+• When you do search, weave the findings naturally into your persona's voice. Do not mention tool mechanics.
+
+• If a search returns no useful data, answer from your own knowledge and briefly note that live data was unavailable.
 
 ========================
 RESPONSE RULES
@@ -172,44 +189,97 @@ ${personaInfo?.interaction_examples ? `\n**Interaction Examples (few-shot contex
     // Combine system message with user messages
     const allMessages = [systemMessage, ...messages];
 
-    const result = await streamText({
+    const result = streamText({
       model: google('gemini-2.5-flash'),
       messages: allMessages,
       temperature: 0.7,
       maxOutputTokens: 10000,
+      // Real Gemini function calling. The model decides when to call searchWeb;
+      // stepCountIs lets it run tool → continue generation within one request.
+      tools: buildAiTools(),
+      stopWhen: stepCountIs(5),
     });
 
-    // Create a slower streaming response
+    // Stream newline-delimited JSON (NDJSON) events so a single response can
+    // carry both assistant text deltas and tool activity, while the smooth
+    // token-by-token streaming experience is preserved.
     const encoder = new TextEncoder();
+    const send = (
+      controller: ReadableStreamDefaultController,
+      event: StreamEvent
+    ) => controller.enqueue(encoder.encode(JSON.stringify(event) + '\n'));
+
     const stream = new ReadableStream({
       async start(controller) {
-        const reader = result.textStream.getReader();
-
         try {
-          while (true) {
-            const { done, value } = await reader.read();
-
-            if (done) {
-              controller.close();
-              break;
+          for await (const part of result.fullStream) {
+            switch (part.type) {
+              case 'text-delta': {
+                if (part.text) {
+                  // Small delay preserves the original gentle streaming cadence.
+                  await new Promise((r) => setTimeout(r, 20));
+                  send(controller, { type: 'text', value: part.text });
+                }
+                break;
+              }
+              case 'tool-call': {
+                const query = (part.input as { query?: string })?.query ?? '';
+                send(controller, {
+                  type: 'tool',
+                  event: 'start',
+                  tool: part.toolName,
+                  query,
+                });
+                break;
+              }
+              case 'tool-result': {
+                const output = part.output as ExecutedTool;
+                const query = (part.input as { query?: string })?.query ?? '';
+                send(controller, {
+                  type: 'tool',
+                  event: 'done',
+                  tool: part.toolName,
+                  query,
+                  result: output?.displaySummary ?? 'Search complete.',
+                });
+                break;
+              }
+              case 'tool-error': {
+                const query = (part.input as { query?: string })?.query ?? '';
+                send(controller, {
+                  type: 'tool',
+                  event: 'error',
+                  tool: part.toolName,
+                  query,
+                  message: 'Unable to retrieve live information.',
+                });
+                break;
+              }
+              case 'error': {
+                send(controller, {
+                  type: 'error',
+                  message: 'generation_error',
+                });
+                break;
+              }
             }
-
-            // Add delay to slow down the stream
-            await new Promise(resolve => setTimeout(resolve, 200)); // 200ms delay per chunk
-
-            controller.enqueue(encoder.encode(value));
           }
+          controller.close();
         } catch (error) {
-          controller.error(error);
-        } finally {
-          reader.releaseLock();
+          try {
+            send(controller, { type: 'error', message: 'stream_error' });
+          } catch {
+            /* controller may already be closed */
+          }
+          controller.close();
+          console.error('Gemini stream error:', error);
         }
-      }
+      },
     });
 
     return new Response(stream, {
       headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
+        'Content-Type': 'application/x-ndjson; charset=utf-8',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
       },

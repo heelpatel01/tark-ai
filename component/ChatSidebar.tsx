@@ -20,6 +20,8 @@ import {
 } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import ThemeLogo from "@/component/ThemeLogo";
+import type { Branch, Conversation } from "@/types/chat";
+import { BranchList } from "@/components/branch/BranchList";
 
 interface PersonaData {
   key: string;
@@ -33,22 +35,20 @@ interface PersonaData {
   additionalContext: string;
 }
 
-interface Conversation {
-  id: string;
-  title: string;
-  persona_key: string;
-  created_at: string;
-}
-
 export type ChatSidebarProps = {
   isOpen: boolean;
   isMobile: boolean;
   selectedPersona: PersonaData | null;
   conversations: Conversation[];
   activeConversationId: string | null;
+  branchesForActive: Branch[];
+  currentBranchId: string | null;
   onNewChat: () => void;
   onSelectConversation: (id: string) => void;
   onDeleteConversation: (id: string) => void;
+  onSwitchBranch: (branchId: string) => void;
+  onRenameBranch: (branchId: string, name: string) => void;
+  onDeleteBranch: (branchId: string) => void;
   onBackToPersonas: () => void;
   onClose: () => void;
   onSendTopic?: (topic: string) => void;
@@ -98,8 +98,8 @@ const QUICK_TOPICS = [
   { label: "Projects", icon: <FiTrendingUp className="w-3.5 h-3.5" /> },
 ];
 
-function timeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
+function timeAgo(createdAt: number): string {
+  const diff = Date.now() - createdAt;
   const mins = Math.floor(diff / 60000);
   if (mins < 1) return "just now";
   if (mins < 60) return `${mins}m ago`;
@@ -114,9 +114,14 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   selectedPersona,
   conversations,
   activeConversationId,
+  branchesForActive,
+  currentBranchId,
   onNewChat,
   onSelectConversation,
   onDeleteConversation,
+  onSwitchBranch,
+  onRenameBranch,
+  onDeleteBranch,
   onBackToPersonas,
   onClose,
   onSendTopic,
@@ -127,7 +132,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
     : DEFAULT_CONFIG;
 
   const filteredConversations = conversations.filter((c) =>
-    selectedPersona ? c.persona_key === selectedPersona.key : true
+    selectedPersona ? c.personaKey === selectedPersona.key : true
   );
 
   const sidebarContent = (
@@ -246,32 +251,48 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
               </p>
             </div>
           ) : (
-            filteredConversations.map((conv) => (
-              <div
-                key={conv.id}
-                onClick={() => { onSelectConversation(conv.id); if (isMobile) onClose(); }}
-                className={`group flex items-start justify-between gap-2 p-2.5 rounded-xl border cursor-pointer transition-all duration-150 ${activeConversationId === conv.id
-                  ? "border-[#6D5DF6]/30 bg-[#6D5DF6]/5 border"
-                  : "border-transparent hover:bg-black/[0.01] hover:border-black/5"
-                  }`}
-              >
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-[#111111] truncate leading-snug">
-                    {conv.title}
-                  </p>
-                  <p className="text-[9px] text-[#667085] font-semibold mt-0.5">
-                    {timeAgo(conv.created_at)}
-                  </p>
+            filteredConversations.map((conv) => {
+              const isActive = activeConversationId === conv.id;
+              return (
+                <div key={conv.id}>
+                  <div
+                    onClick={() => { onSelectConversation(conv.id); if (isMobile) onClose(); }}
+                    className={`group flex items-start justify-between gap-2 p-2.5 rounded-xl border cursor-pointer transition-all duration-150 ${isActive
+                      ? "border-[#6D5DF6]/30 bg-[#6D5DF6]/5 border"
+                      : "border-transparent hover:bg-black/[0.01] hover:border-black/5"
+                      }`}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-[#111111] truncate leading-snug">
+                        {conv.title}
+                      </p>
+                      <p className="text-[9px] text-[#667085] font-semibold mt-0.5">
+                        {timeAgo(conv.createdAt)}
+                      </p>
+                    </div>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onDeleteConversation(conv.id); }}
+                      className="opacity-0 group-hover:opacity-100 p-1 text-[#667085] hover:text-red-500 transition-all flex-shrink-0"
+                      aria-label="Delete session"
+                    >
+                      <FiTrash2 size={11} strokeWidth={2.5} />
+                    </button>
+                  </div>
+
+                  {/* Branches of the active conversation */}
+                  {isActive && (
+                    <BranchList
+                      branches={branchesForActive}
+                      currentBranchId={currentBranchId}
+                      accent={config.accent}
+                      onSwitch={(id) => { onSwitchBranch(id); if (isMobile) onClose(); }}
+                      onRename={onRenameBranch}
+                      onDelete={onDeleteBranch}
+                    />
+                  )}
                 </div>
-                <button
-                  onClick={(e) => { e.stopPropagation(); onDeleteConversation(conv.id); }}
-                  className="opacity-0 group-hover:opacity-100 p-1 text-[#667085] hover:text-red-500 transition-all flex-shrink-0"
-                  aria-label="Delete session"
-                >
-                  <FiTrash2 size={11} strokeWidth={2.5} />
-                </button>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
