@@ -1,4 +1,5 @@
 import type { StreamEvent } from "@/types/chat";
+import { readNdjsonStream } from "@/services/ndjson";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Chat transport service.
@@ -44,10 +45,6 @@ export async function streamChat({
     throw new Error(`HTTP ${response.status}`);
   }
 
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-
   const dispatch = (event: StreamEvent) => {
     switch (event.type) {
       case "text":
@@ -67,29 +64,5 @@ export async function streamChat({
     }
   };
 
-  const flushLine = (line: string) => {
-    const trimmed = line.trim();
-    if (!trimmed) return;
-    try {
-      dispatch(JSON.parse(trimmed) as StreamEvent);
-    } catch {
-      /* ignore malformed frame */
-    }
-  };
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-
-    let newlineIndex: number;
-    while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
-      const line = buffer.slice(0, newlineIndex);
-      buffer = buffer.slice(newlineIndex + 1);
-      flushLine(line);
-    }
-  }
-
-  // Flush any trailing frame without a newline.
-  flushLine(buffer);
+  await readNdjsonStream<StreamEvent>(response.body, dispatch);
 }
