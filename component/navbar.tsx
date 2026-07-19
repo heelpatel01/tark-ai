@@ -8,6 +8,7 @@ import ThemeLogo from "@/component/ThemeLogo";
 const NAV_LINKS = [
   { label: "Features", href: "/#features" },
   { label: "Personas", href: "/persona" },
+  { label: "Consensus", href: "/self-consistency" },
   { label: "About", href: "/#about" },
   { label: "Blog", href: "/blog" },
 ];

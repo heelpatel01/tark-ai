@@ -203,7 +203,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
       )}
 
       {/* New Chat Button */}
-      <div className="px-4 py-4 border-b border-black/5 flex-shrink-0">
+      <div className="px-4 py-4 border-b border-black/5 flex-shrink-0 space-y-2">
         <button
           onClick={onNewChat}
           className="
@@ -215,6 +215,21 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
         >
           <FiPlus strokeWidth={3} size={13} />
           New Session
+        </button>
+
+        {/* AI Consensus Engine */}
+        <button
+          onClick={() => { if (isMobile) onClose(); router.push("/self-consistency"); }}
+          className="
+            w-full flex items-center justify-center gap-2
+            font-bold uppercase text-[10px] tracking-wider text-[#111111] dark:text-[#F8FAFC]
+            py-2.5 px-4 rounded-full border border-black/10 dark:border-white/10
+            bg-white hover:bg-[#F8FAFC] dark:bg-white/5 dark:hover:bg-white/10
+            shadow-sm hover:shadow transition-all
+          "
+        >
+          <span aria-hidden>🧠</span>
+          AI Consensus Engine
         </button>
       </div>
 

@@ -31,7 +31,8 @@
   <a href="#-tech-stack">Tech Stack</a> •
   <a href="#-installation">Installation</a> •
   <a href="#-how-tool-calling-works">Tool Calling</a> •
-  <a href="#-how-chat-branching-works">Branching</a>
+  <a href="#-how-chat-branching-works">Branching</a> •
+  <a href="#-self-consistency-answer-engine">Consensus Engine</a>
 </p>
 
 ---
@@ -45,6 +46,7 @@
 | 🔧 **Real Gemini Function Calling** | The model itself decides when it needs live data — native tool calling, never prompt-simulated |
 | 🌐 **Live Web Search** | `searchWeb` tool powered by Tavily, rendered inline in the chat with search status |
 | 🌿 **Chat Branching** | Fork a conversation from any message, ChatGPT-style; branches continue independently |
+| 🧠 **Self-Consistency Engine** | Ask multiple models the same question in parallel; an evaluator synthesizes one consensus answer |
 | 📝 **Markdown Rendering** | Full GFM support — syntax-highlighted code blocks, copyable tables, blockquotes, links |
 | 💾 **Persistent Conversations** | Conversations, branches, and messages survive page reloads with zero backend setup |
 | 📱 **Responsive Design** | Fully usable from mobile to widescreen, with an adaptive slide-in sidebar |
@@ -314,14 +316,19 @@ tark-ai/
 
 | Variable | Required | Description |
 | --- | --- | --- |
-| `GEMINI_API_KEYY` | ✅ Yes | Google Gemini API key (note the intentional double "Y" — it matches `process.env.GEMINI_API_KEYY` in the codebase). Powers streaming and function calling. |
+| `GEMINI_API_KEYY` | ✅ Yes | Google Gemini API key (note the intentional double "Y" — it matches `process.env.GEMINI_API_KEYY` in the codebase). Powers streaming, function calling **and the consensus evaluator**. |
 | `TAVILY_API_KEY` | ⭕ Optional | Enables the `searchWeb` tool via [Tavily](https://tavily.com). Without it, search degrades gracefully — the chat shows *"Unable to retrieve live information."* and continues from model knowledge. |
+| `OPENROUTER_API_KEY` | ⭕ Optional | Powers the [Self-Consistency Answer Engine](#-self-consistency-answer-engine)'s default free-tier models via [OpenRouter](https://openrouter.ai). |
+| `OPENAI_API_KEY` | 🔌 Later | Enables direct OpenAI models in the consensus panel — config change only, no code. |
+| `ANTHROPIC_API_KEY` | 🔌 Later | Enables direct Claude models in the consensus panel — config change only, no code. |
+| `GEMINI_API_KEY` | 🔌 Later | Standard-named alias for the Gemini key (both names are accepted). |
 
 Create a `.env.local` (or `.env`) in the project root:
 
 ```env
 GEMINI_API_KEYY=your_google_gemini_api_key
 TAVILY_API_KEY=your_tavily_api_key
+OPENROUTER_API_KEY=your_openrouter_api_key
 ```
 
 A template is provided in [`.example.env`](.example.env).
@@ -443,6 +450,75 @@ flowchart LR
 ```
 
 **Sending on a branch** appends messages tagged with that `branchId` only — the parent is never mutated. **Switching** updates the conversation's `currentBranchId`. **Deleting** removes the branch and its own messages, falling back to Main if it was active; Main itself cannot be deleted.
+
+---
+
+## 🧠 Self-Consistency Answer Engine
+
+> Route: **`/self-consistency`** — a premium AI playground that generates higher-quality answers by asking multiple models the same question, then letting an evaluator model synthesize the best possible answer.
+
+### How It Works
+
+```mermaid
+flowchart TD
+    Q["❓ User Question"] --> P["Parallel Model Calls<br/>(Promise.all — identical prompt,<br/>no model sees another's response)"]
+    P --> M1["Gemini Flash"]
+    P --> M2["DeepSeek Chat"]
+    P --> M3["Qwen 3"]
+    M1 --> C["Response Collection<br/>(failed models are skipped,<br/>never crash the run)"]
+    M2 --> C
+    M3 --> C
+    C --> E["🧪 Evaluator Model<br/>compares accuracy · completeness ·<br/>reasoning · clarity"]
+    E --> F["✨ Final Consensus Answer<br/>(strongest ideas merged,<br/>duplicates removed, facts corrected)"]
+```
+
+1. **Question** — the exact same prompt is sent simultaneously to every configured model.
+2. **Parallel Model Calls** — one `Promise.all` fan-out; each card flips `Waiting → Loading → Finished/Failed` live as models settle (streamed as NDJSON events).
+3. **Response Collection** — a failed provider is excluded, not fatal; the run continues with whatever succeeded.
+4. **Evaluator** — runs *only after all responses settle*. It compares factual accuracy, completeness, reasoning and clarity, merges the strongest ideas, and never mentions model names.
+5. **Final Consensus** — one polished, seamless answer displayed in a highlighted card alongside every individual response.
+
+### Providers
+
+The engine is built on a **provider abstraction** (`lib/ai/providers/*`) — the orchestrator, API route and UI don't know or care which vendor is behind a model.
+
+| Provider | Status | Env Var |
+| --- | --- | --- |
+| **OpenRouter** | ✅ Default (free-tier models: Gemini Flash, DeepSeek Chat, Qwen 3) | `OPENROUTER_API_KEY` |
+| **Google Gemini** (direct) | ✅ Default evaluator | `GEMINI_API_KEY` / `GEMINI_API_KEYY` |
+| **OpenAI** | 🔌 Ready — set the key, point a model at it | `OPENAI_API_KEY` |
+| **Anthropic Claude** | 🔌 Ready — set the key, point a model at it | `ANTHROPIC_API_KEY` |
+
+**Adding or swapping models requires zero code changes to the UI, API or orchestrator** — edit the config array in [`lib/ai/models.ts`](lib/ai/models.ts) and set the matching environment variable:
+
+```ts
+// lib/ai/models.ts — swap a free model for a paid one:
+{ key: "gpt",    label: "GPT-4o",        provider: "openai",    modelId: "gpt-4o",          accent: "#10A37F" },
+{ key: "claude", label: "Claude Sonnet", provider: "anthropic", modelId: "claude-sonnet-5", accent: "#D97757" },
+```
+
+### Architecture
+
+```
+lib/ai/
+├── types.ts             # ProviderAdapter · ModelConfig · ModelResponse · EvaluationRequest/Result
+├── models.ts            # THE config: consensus panel + evaluator model
+├── orchestrator.ts      # provider registry + parallel fan-out (never throws)
+├── evaluator.ts         # evaluator prompt + synthesis (runs only after all settle)
+└── providers/
+    ├── openrouter.ts    # default — one key, many models
+    ├── gemini.ts        # direct Google REST
+    ├── openai.ts        # direct OpenAI
+    ├── anthropic.ts     # direct Claude
+    └── openaiCompatible.ts  # shared chat-completions helper
+
+app/api/self-consistency/route.ts   # POST — NDJSON progressive events
+services/consensus.ts               # client transport
+hooks/useConsensus.ts               # idle → generating → synthesizing → done
+components/consensus/               # ModelCard · FinalAnswerCard · ConsensusPlayground
+```
+
+[attach image: Self-Consistency Answer Engine]
 
 ---
 
