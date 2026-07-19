@@ -9,6 +9,7 @@ const NAV_LINKS = [
   { label: "Features", href: "/#features" },
   { label: "Personas", href: "/persona" },
   { label: "About", href: "/#about" },
+  { label: "Blog", href: "/blog" },
 ];
 
 const Navbar: React.FC = () => {
