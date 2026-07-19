@@ -539,8 +539,8 @@ This project is licensed under the **MIT License** — free to use, modify, and 
 | | |
 | --- | --- |
 | 💻 GitHub | [github.com/heelpatel01](https://github.com/heelpatel01) |
-| 💼 LinkedIn | _Add your LinkedIn profile link here_ |
-| 🌐 Portfolio | _Add your portfolio link here_ |
+| 💼 LinkedIn |https://www.linkedin.com/in/heelpatel/|
+| 🌐 Portfolio |cortax.in|
 
 ---
 
