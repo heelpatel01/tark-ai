@@ -1,6 +1,7 @@
-import type { EvaluationRequest, EvaluationResult } from "./types";
-import { EVALUATOR_MODEL } from "./models";
+import type { EvaluationRequest, EvaluationResult, ModelConfig } from "./types";
+import { EVALUATOR_MODEL, EVALUATOR_FALLBACK_MODEL } from "./models";
 import { getProvider } from "./orchestrator";
+import { isTransientProviderError } from "./errors";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Evaluator — runs ONLY after every model response has settled, receives the
@@ -47,35 +48,76 @@ function buildEvaluatorPrompt({ question, responses }: EvaluationRequest): strin
 }
 
 const EVALUATOR_TIMEOUT_MS = 60_000;
+const RETRY_DELAY_MS = 2_500;
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** One evaluator attempt against a specific model config, with its own timeout. */
+async function runEvaluatorAttempt(
+  config: ModelConfig,
+  prompt: string
+): Promise<string> {
+  const provider = getProvider(config.provider);
+  if (!provider.isConfigured()) {
+    throw new Error(`Evaluator provider (${config.provider}) is not configured`);
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), EVALUATOR_TIMEOUT_MS);
+  try {
+    return await provider.complete({
+      modelId: config.modelId,
+      systemPrompt: EVALUATOR_SYSTEM_PROMPT,
+      prompt,
+      temperature: 0.4,
+      maxTokens: 3072,
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
 
 /**
- * Synthesize the final answer from successful responses. Throws on failure —
+ * Synthesize the final answer from successful responses.
+ *
+ * Resilience: the primary (Gemini, direct Google API) is retried once after a
+ * short delay when the failure is transient (rate limit / capacity), then the
+ * configured fallback evaluator takes over. Throws only when every path fails —
  * the API route catches and degrades gracefully.
  */
 export async function synthesizeFinalAnswer(
   request: EvaluationRequest
 ): Promise<EvaluationResult> {
   const started = Date.now();
-  const provider = getProvider(EVALUATOR_MODEL.provider);
-
-  if (!provider.isConfigured()) {
-    throw new Error(`Evaluator provider (${EVALUATOR_MODEL.provider}) is not configured`);
-  }
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), EVALUATOR_TIMEOUT_MS);
+  const prompt = buildEvaluatorPrompt(request);
 
   try {
-    const finalAnswer = await provider.complete({
-      modelId: EVALUATOR_MODEL.modelId,
-      systemPrompt: EVALUATOR_SYSTEM_PROMPT,
-      prompt: buildEvaluatorPrompt(request),
-      temperature: 0.4,
-      maxTokens: 3072,
-      signal: controller.signal,
-    });
+    // Attempt 1 — primary evaluator.
+    const finalAnswer = await runEvaluatorAttempt(EVALUATOR_MODEL, prompt);
     return { finalAnswer, latencyMs: Date.now() - started };
-  } finally {
-    clearTimeout(timeout);
+  } catch (primaryError) {
+    // Attempt 2 — retry the primary once when the failure is transient.
+    if (isTransientProviderError(primaryError)) {
+      await sleep(RETRY_DELAY_MS);
+      try {
+        const finalAnswer = await runEvaluatorAttempt(EVALUATOR_MODEL, prompt);
+        return { finalAnswer, latencyMs: Date.now() - started };
+      } catch {
+        /* fall through to the fallback evaluator */
+      }
+    }
+
+    // Attempt 3 — fallback evaluator on a different provider.
+    const fallback = EVALUATOR_FALLBACK_MODEL;
+    if (fallback && getProvider(fallback.provider).isConfigured()) {
+      console.warn(
+        `Primary evaluator failed (${(primaryError as Error)?.message}); using fallback ${fallback.provider}/${fallback.modelId}`
+      );
+      const finalAnswer = await runEvaluatorAttempt(fallback, prompt);
+      return { finalAnswer, latencyMs: Date.now() - started };
+    }
+
+    throw primaryError;
   }
 }

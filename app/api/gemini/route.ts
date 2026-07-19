@@ -5,6 +5,7 @@ import { getPersona } from '@/lib/personaData';
 import { buildAiTools } from '@/lib/tools/registry';
 import type { ExecutedTool } from '@/lib/tools/executor';
 import type { StreamEvent } from '@/types/chat';
+import { GEMINI_CHAT_MODEL_ID } from '@/lib/ai/models';
 
 const google = createGoogleGenerativeAI({
   apiKey: process.env.GEMINI_API_KEYY, // Make sure to set this in your environment variables
@@ -190,7 +191,7 @@ ${personaInfo?.interaction_examples ? `\n**Interaction Examples (few-shot contex
     const allMessages = [systemMessage, ...messages];
 
     const result = streamText({
-      model: google('gemini-2.5-flash'),
+      model: google(GEMINI_CHAT_MODEL_ID),
       messages: allMessages,
       temperature: 0.7,
       maxOutputTokens: 10000,

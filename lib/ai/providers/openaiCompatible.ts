@@ -1,4 +1,5 @@
 import type { CompletionRequest } from "../types";
+import { TransientProviderError } from "../errors";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared completion call for OpenAI-compatible chat APIs (OpenAI, OpenRouter,
@@ -34,6 +35,11 @@ export async function openAiCompatibleComplete(
 
   if (!res.ok) {
     const detail = await res.text().catch(() => "");
+    if (res.status === 429 || res.status === 503) {
+      throw new TransientProviderError(
+        `Provider is temporarily rate-limited or over capacity (HTTP ${res.status}).`
+      );
+    }
     throw new Error(`HTTP ${res.status}${detail ? `: ${detail.slice(0, 200)}` : ""}`);
   }
 

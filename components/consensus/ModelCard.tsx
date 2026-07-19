@@ -22,7 +22,7 @@ import { MarkdownMessage } from "@/components/chat/Markdown";
 // ─────────────────────────────────────────────────────────────────────────────
 
 const MODEL_ICONS: Record<string, LucideIcon> = {
-  "gemini-flash": Sparkles,
+  gemini: Sparkles,
   deepseek: Waves,
   qwen: Cpu,
 };
