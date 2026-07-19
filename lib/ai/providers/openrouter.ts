@@ -23,7 +23,7 @@ export const openRouterProvider: ProviderAdapter = {
       {
         // Optional attribution headers recommended by OpenRouter.
         "HTTP-Referer": "https://tark-ai.online",
-        "X-Title": "Tark AI — Self-Consistency Engine",
+        "X-Title": "Tark AI - Self-Consistency Engine",
       }
     );
   },
