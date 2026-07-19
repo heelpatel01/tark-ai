@@ -58,17 +58,32 @@
 
 ## 📸 Preview
 
-[attach image: Landing Page]
-
-[attach image: Chat Interface]
-
-[attach image: Tool Calling]
-
-[attach image: Branch Creation]
-
-[attach image: Branch Navigation]
-
-[attach image: Mobile View]
+<table>
+  <tr>
+    <td align="center"><strong>Landing Page</strong></td>
+    <td align="center"><strong>Chat Interface</strong></td>
+  </tr>
+  <tr>
+    <td><img src="https://res.cloudinary.com/fymgnrmy/image/upload/v1784473824/Landing_Page_ke42aj.jpg" width="420"></td>
+    <td><img src="https://res.cloudinary.com/fymgnrmy/image/upload/v1784473825/Chat_Interface_lylkgj.jpg" width="420"></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Tool Calling — Live Web Search</strong></td>
+    <td align="center"><strong>Branch Creation</strong></td>
+  </tr>
+  <tr>
+    <td><img src="https://res.cloudinary.com/fymgnrmy/image/upload/v1784473824/Search_Tooling_Image_fwivtb.jpg" width="420"></td>
+    <td><img src="https://res.cloudinary.com/fymgnrmy/image/upload/v1784473825/Branch_Creation_gy8qgt.png" width="420"></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Branch Navigation</strong></td>
+    <td align="center"><strong>Mobile View</strong></td>
+  </tr>
+  <tr>
+    <td><img src="https://res.cloudinary.com/fymgnrmy/image/upload/v1784473825/Branch_Navigation_jebhww.png" width="420"></td>
+    <td><img src="https://res.cloudinary.com/fymgnrmy/image/upload/v1784473824/Mobile_View_yx5jso.jpg" width="220"></td>
+  </tr>
+</table>
 
 ---
 
@@ -385,7 +400,9 @@ Tark AI uses **real Gemini function calling** through the Vercel AI SDK — the 
 
 **7 — Failure.** Every error path (no key, HTTP failure, timeout, empty results) resolves — never throws. The tool card flips to *"Unable to retrieve live information."*, the model is told live data was unavailable, and it finishes the answer from its own knowledge.
 
-[attach image: Tool Calling in action]
+<p align="center">
+  <img src="https://res.cloudinary.com/fymgnrmy/image/upload/v1784473824/Search_Tooling_Image_fwivtb.jpg" width="600" alt="Tool calling in action — inline web search card">
+</p>
 
 ---
 
@@ -431,13 +448,15 @@ flowchart LR
 
 ## 📸 Screenshots
 
-[attach image: Sidebar]
+<p align="center">
+  <img src="https://res.cloudinary.com/fymgnrmy/image/upload/v1784473824/In_General_usable_Chat_With_Slidebar_and_all_image_mokv0r.jpg" width="700" alt="Full chat interface with sidebar, sessions and quick topics">
+</p>
 
-[attach image: Search in Progress]
+<p align="center"><em>Sidebar, conversation history, and quick topics — all in one glass-panel layout.</em></p>
 
-[attach image: Streaming Response]
-
-[attach image: Branch Sidebar]
+| Search in Progress | Branch Sidebar |
+| --- | --- |
+| <img src="https://res.cloudinary.com/fymgnrmy/image/upload/v1784473824/Search_Tooling_Image_fwivtb.jpg" width="380"> | <img src="https://res.cloudinary.com/fymgnrmy/image/upload/v1784473825/Branch_Navigation_jebhww.png" width="380"> |
 
 [attach image: Dark Mode]
 
@@ -449,7 +468,9 @@ flowchart LR
 
 Tark AI is designed mobile-first. On small screens the sidebar becomes a slide-in drawer with a backdrop, message bubbles cap at 82% width with horizontally scrollable code blocks and tables, and touch targets are sized for thumbs. The layout adapts fluidly from a 360 px phone to an ultrawide desktop with no horizontal page scroll at any breakpoint.
 
-[attach image: Mobile chat view with drawer sidebar]
+<p align="center">
+  <img src="https://res.cloudinary.com/fymgnrmy/image/upload/v1784473824/Mobile_View_yx5jso.jpg" width="260" alt="Mobile chat view">
+</p>
 
 ---
 
